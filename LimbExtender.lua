@@ -181,7 +181,6 @@ for player, connection in pairs(_G.PlayerConnections) do
     end
 end
 
-UserInputService.InputBegan:Disconnect(onKeyPress)
 UserInputService.InputBegan:Connect(onKeyPress)
 
 if _G.ProcessEnabled then
