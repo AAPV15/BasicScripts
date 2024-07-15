@@ -153,10 +153,8 @@ end
 
 local function toggleProcess()
     if _G.ProcessEnabled then
-        _G.ProcessEnabled = false
         disableProcess()
     else
-        _G.ProcessEnabled = true
         enableProcess()
     end
 end
@@ -183,7 +181,6 @@ for player, connection in pairs(_G.PlayerConnections) do
     end
 end
 
-UserInputService.InputBegan:Disconnect(onKeyPress)
 UserInputService.InputBegan:Connect(onKeyPress)
 
 if _G.ProcessEnabled then
