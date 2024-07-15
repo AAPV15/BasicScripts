@@ -2,14 +2,12 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Constants for limb modification
 local TARGET_LIMB = "Head"
 local LIMB_SIZE = 20
 local LIMB_TRANSPARENCY = 0.5
 local LIMB_CAN_COLLIDE = false
 local LIMB_MASSLESS = true
 
--- Highlight constants
 local USE_HIGHLIGHT = true
 local DEPTH_MODE = Enum.HighlightDepthMode.Occluded
 local HIGHLIGHT_FILL_COLOR = Color3.fromRGB(255, 0, 0)
@@ -17,14 +15,12 @@ local HIGHLIGHT_FILL_TRANSPARENCY = 0.5
 local HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255)
 local HIGHLIGHT_OUTLINE_TRANSPARENCY = 0
 
--- Global storage for connections and process state
 _G.PlayerConnections = _G.PlayerConnections or {}
 _G.PlayerAddedConnection = nil
 _G.PlayerRemovingConnection = nil
 _G.ProcessEnabled = _G.ProcessEnabled ~= nil and _G.ProcessEnabled or true
 _G.OriginalProperties = _G.OriginalProperties or {}
 
--- Function to check if a player's character is alive
 local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -34,7 +30,6 @@ local function isPlayerAlive(character)
     return false
 end
 
--- Store original limb properties for restoration
 local function storeOriginalProperties(limb)
     _G.OriginalProperties[limb] = {
         Size = limb.Size,
@@ -44,7 +39,6 @@ local function storeOriginalProperties(limb)
     }
 end
 
--- Restore original limb properties
 local function restoreOriginalProperties(limb)
     local properties = _G.OriginalProperties[limb]
     if properties then
@@ -59,7 +53,6 @@ local function restoreOriginalProperties(limb)
     end
 end
 
--- Modify the limb properties
 local function modifyLimb(character)
     local limb = character:WaitForChild(TARGET_LIMB)
     storeOriginalProperties(limb)
@@ -83,7 +76,6 @@ local function modifyLimb(character)
     end
 end
 
--- Handle character added event
 local function onCharacterAdded(player)
     if _G.PlayerConnections[player] then
         _G.PlayerConnections[player]:Disconnect()
@@ -102,7 +94,6 @@ local function onCharacterAdded(player)
     end)
 end
 
--- Handle player added event
 local function onPlayerAdded(player)
     onCharacterAdded(player)
     if player.Character then
@@ -110,7 +101,6 @@ local function onPlayerAdded(player)
     end
 end
 
--- Handle player removing event
 local function onPlayerRemoving(player)
     if _G.PlayerConnections[player] then
         _G.PlayerConnections[player]:Disconnect()
@@ -118,9 +108,7 @@ local function onPlayerRemoving(player)
     end
 end
 
--- Enable the limb modification process
 local function enableProcess()
-    -- Disconnect existing connections
     if _G.PlayerAddedConnection then
         _G.PlayerAddedConnection:Disconnect()
     end
@@ -128,7 +116,6 @@ local function enableProcess()
         _G.PlayerRemovingConnection:Disconnect()
     end
 
-    -- Disconnect all player connections
     for player, connection in pairs(_G.PlayerConnections) do
         if connection then
             connection:Disconnect()
@@ -136,17 +123,13 @@ local function enableProcess()
         end
     end
 
-    -- Connect to PlayerAdded and PlayerRemoving events
     _G.PlayerAddedConnection = Players.PlayerAdded:Connect(onPlayerAdded)
     _G.PlayerRemovingConnection = Players.PlayerRemoving:Connect(onPlayerRemoving)
 
-    -- Set process state
     _G.ProcessEnabled = true
 end
 
--- Disable the limb modification process
 local function disableProcess()
-    -- Disconnect PlayerAdded and PlayerRemoving connections
     if _G.PlayerAddedConnection then
         _G.PlayerAddedConnection:Disconnect()
         _G.PlayerAddedConnection = nil
@@ -156,7 +139,6 @@ local function disableProcess()
         _G.PlayerRemovingConnection = nil
     end
 
-    -- Disconnect all player connections
     for player, connection in pairs(_G.PlayerConnections) do
         if connection then
             connection:Disconnect()
@@ -164,7 +146,6 @@ local function disableProcess()
         end
     end
 
-    -- Restore original limb properties for all players
     for _, player in ipairs(Players:GetPlayers()) do
         local character = player.Character
         if character then
@@ -175,11 +156,9 @@ local function disableProcess()
         end
     end
 
-    -- Set process state
     _G.ProcessEnabled = false
 end
 
--- Toggle the limb modification process
 local function toggleProcess()
     if _G.ProcessEnabled then
         disableProcess()
@@ -188,7 +167,6 @@ local function toggleProcess()
     end
 end
 
--- Handle key press event for toggling the process
 local function onKeyPress(input, gameProcessedEvent)
     if gameProcessedEvent then return end
     if input.KeyCode == Enum.KeyCode.K then
@@ -196,10 +174,8 @@ local function onKeyPress(input, gameProcessedEvent)
     end
 end
 
--- Connect to the InputBegan event for key presses
 UserInputService.InputBegan:Connect(onKeyPress)
 
--- Initialize the process state based on _G.ProcessEnabled
 if _G.ProcessEnabled then
     enableProcess()
 else
