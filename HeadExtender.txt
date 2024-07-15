@@ -1,1 +1,140 @@
-"local KillEntireProcess = true\r\n\r\nlocal TARGET_LIMB = \"Torso\"\r\n\r\nlocal LIMB_SIZE = 20\r\nlocal LIMB_TRANSPARENCY = 0.5\r\nlocal LIMB_CAN_COLLIDE = false\r\nlocal LIMB_MASSLESS = true\r\n\r\nlocal USE_HIGHLIGHT = true\r\nlocal DEPTH_MODE = Enum.HighlightDepthMode.Occluded\r\nlocal HIGHLIGHT_FILL_COLOR = Color3.fromRGB(255, 0, 0)\r\nlocal HIGHLIGHT_FILL_TRANSPARENCY = 0.5\r\nlocal HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255)\r\nlocal HIGHLIGHT_OUTLINE_TRANSPARENCY = 0\r\n\r\nlocal Players = game:GetService(\"Players\")\r\nlocal LocalPlayer = Players.LocalPlayer\r\n\r\n_G.PlayerConnections = _G.PlayerConnections or {}\r\n_G.PlayerAdded = _G.PlayerAdded or nil\r\n\r\nlocal function isPlayerAlive(character)\r\n    if character then\r\n        local humanoid = character:FindFirstChild(\"Humanoid\")\r\n        local LIMB = character:FindFirstChild(TARGET_LIMB)\r\n        return LIMB and humanoid and humanoid.Health > 0\r\n    end\r\n    return false\r\nend\r\n\r\nlocal function modifyLimb(character)\r\n    local LIMB = character:WaitForChild(TARGET_LIMB)\r\n    LIMB.Transparency = LIMB_TRANSPARENCY\r\n    LIMB.CanCollide = LIMB_CAN_COLLIDE\r\n    LIMB.Massless = LIMB_MASSLESS\r\n    LIMB.Size = Vector3.new(LIMB_SIZE, LIMB_SIZE, LIMB_SIZE)\r\n\r\n    if USE_HIGHLIGHT then\r\n        local highlight = LIMB:FindFirstChild(\"LimbExtenderHighlight\")\r\n        if not highlight then\r\n            highlight = Instance.new(\"Highlight\")\r\n            highlight.Name = \"LimbExtenderHighlight\"\r\n            highlight.Parent = LIMB\r\n        end\r\n        highlight.Enabled = true\r\n        highlight.DepthMode = DEPTH_MODE\r\n        highlight.Adornee = LIMB\r\n        highlight.FillColor = HIGHLIGHT_FILL_COLOR\r\n        highlight.FillTransparency = HIGHLIGHT_FILL_TRANSPARENCY\r\n        highlight.OutlineColor = HIGHLIGHT_OUTLINE_COLOR\r\n        highlight.OutlineTransparency = HIGHLIGHT_OUTLINE_TRANSPARENCY\r\n    else\r\n        local highlight = LIMB:FindFirstChild(\"LimbExtenderHighlight\")\r\n        if highlight then\r\n            highlight.Enabled = false\r\n        end\r\n    end\r\nend\r\n\r\nlocal function handleCharacter(character)\r\n    if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then\r\n        coroutine.wrap(function()\r\n            while not isPlayerAlive(character) do\r\n                task.wait()\r\n            end\r\n            modifyLimb(character)\r\n            character.Humanoid.Died:Once(function()\r\n                character:Destroy()\r\n            end)\r\n        end)()\r\n    end\r\nend\r\n\r\nlocal function onCharacterAdded(player)\r\n    if _G.PlayerConnections[player] then\r\n        _G.PlayerConnections[player]:Disconnect()\r\n    end\r\n    _G.PlayerConnections[player] = player.CharacterAdded:Connect(handleCharacter)\r\nend\r\n\r\nlocal function onPlayerAdded(player)\r\n    onCharacterAdded(player)\r\n    if player.Character then\r\n        handleCharacter(player.Character)\r\n    end\r\nend\r\n\r\nlocal function onPlayerRemoving(player)\r\n    if _G.PlayerConnections[player] then\r\n        _G.PlayerConnections[player]:Disconnect()\r\n        _G.PlayerConnections[player] = nil\r\n    end\r\nend\r\n\r\nlocal killProcessEvent = LocalPlayer:FindFirstChild(\"KillProcess\") or Instance.new(\"BindableEvent\")\r\nkillProcessEvent.Name = \"KillProcess\"\r\nkillProcessEvent.Parent = LocalPlayer\r\n\r\n\r\nlocal function handleKillEntireProcess(value)\r\n    if value == true then\r\n        if _G.PlayerAdded then\r\n            _G.PlayerAdded:Disconnect()\r\n        end\r\n        for player, connection in pairs(_G.PlayerConnections) do\r\n            if connection then\r\n                connection:Disconnect()\r\n                _G.PlayerConnections[player] = nil\r\n            end\r\n        end\r\n        script:Destroy()\r\n    end\r\nend\r\n\r\nkillProcessEvent.Event:Connect(handleKillEntireProcess)\r\n\r\nif KillEntireProcess then\r\n    killProcessEvent:Fire(true)\r\nend\r\n\r\nfor player, connection in pairs(_G.PlayerConnections) do\r\n    if connection then\r\n        connection:Disconnect()\r\n        _G.PlayerConnections[player] = nil\r\n    end\r\nend\r\n\r\nfor _, player in pairs(Players:GetPlayers()) do\r\n    if player ~= LocalPlayer then\r\n        onPlayerAdded(player)\r\n    end\r\nend\r\n\r\nif _G.PlayerAdded then\r\n    _G.PlayerAdded:Disconnect()\r\nend\r\n\r\n_G.PlayerAdded = Players.PlayerAdded:Connect(onPlayerAdded)\r\nPlayers.PlayerRemoving:Connect(onPlayerRemoving)"
+local KillEntireProcess = true
+
+local TARGET_LIMB = "Torso"
+
+local LIMB_SIZE = 20
+local LIMB_TRANSPARENCY = 0.5
+local LIMB_CAN_COLLIDE = false
+local LIMB_MASSLESS = true
+
+local USE_HIGHLIGHT = true
+local DEPTH_MODE = Enum.HighlightDepthMode.Occluded
+local HIGHLIGHT_FILL_COLOR = Color3.fromRGB(255, 0, 0)
+local HIGHLIGHT_FILL_TRANSPARENCY = 0.5
+local HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255)
+local HIGHLIGHT_OUTLINE_TRANSPARENCY = 0
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+_G.PlayerConnections = _G.PlayerConnections or {}
+_G.PlayerAdded = _G.PlayerAdded or nil
+
+local function isPlayerAlive(character)
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        local LIMB = character:FindFirstChild(TARGET_LIMB)
+        return LIMB and humanoid and humanoid.Health > 0
+    end
+    return false
+end
+
+local function modifyLimb(character)
+    local LIMB = character:WaitForChild(TARGET_LIMB)
+    LIMB.Transparency = LIMB_TRANSPARENCY
+    LIMB.CanCollide = LIMB_CAN_COLLIDE
+    LIMB.Massless = LIMB_MASSLESS
+    LIMB.Size = Vector3.new(LIMB_SIZE, LIMB_SIZE, LIMB_SIZE)
+
+    if USE_HIGHLIGHT then
+        local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
+        if not highlight then
+            highlight = Instance.new("Highlight")
+            highlight.Name = "LimbExtenderHighlight"
+            highlight.Parent = LIMB
+        end
+        highlight.Enabled = true
+        highlight.DepthMode = DEPTH_MODE
+        highlight.Adornee = LIMB
+        highlight.FillColor = HIGHLIGHT_FILL_COLOR
+        highlight.FillTransparency = HIGHLIGHT_FILL_TRANSPARENCY
+        highlight.OutlineColor = HIGHLIGHT_OUTLINE_COLOR
+        highlight.OutlineTransparency = HIGHLIGHT_OUTLINE_TRANSPARENCY
+    else
+        local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
+        if highlight then
+            highlight.Enabled = false
+        end
+    end
+end
+
+local function handleCharacter(character)
+    if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
+        coroutine.wrap(function()
+            while not isPlayerAlive(character) do
+                task.wait()
+            end
+            modifyLimb(character)
+            character.Humanoid.Died:Once(function()
+                character:Destroy()
+            end)
+        end)()
+    end
+end
+
+local function onCharacterAdded(player)
+    if _G.PlayerConnections[player] then
+        _G.PlayerConnections[player]:Disconnect()
+    end
+    _G.PlayerConnections[player] = player.CharacterAdded:Connect(handleCharacter)
+end
+
+local function onPlayerAdded(player)
+    onCharacterAdded(player)
+    if player.Character then
+        handleCharacter(player.Character)
+    end
+end
+
+local function onPlayerRemoving(player)
+    if _G.PlayerConnections[player] then
+        _G.PlayerConnections[player]:Disconnect()
+        _G.PlayerConnections[player] = nil
+    end
+end
+
+local killProcessEvent = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("BindableEvent")
+killProcessEvent.Name = "KillProcess"
+killProcessEvent.Parent = LocalPlayer
+
+
+local function handleKillEntireProcess(value)
+    if value == true then
+        if _G.PlayerAdded then
+            _G.PlayerAdded:Disconnect()
+        end
+        for player, connection in pairs(_G.PlayerConnections) do
+            if connection then
+                connection:Disconnect()
+                _G.PlayerConnections[player] = nil
+            end
+        end
+        script:Destroy()
+    end
+end
+
+killProcessEvent.Event:Connect(handleKillEntireProcess)
+
+if KillEntireProcess then
+    killProcessEvent:Fire(true)
+end
+
+for player, connection in pairs(_G.PlayerConnections) do
+    if connection then
+        connection:Disconnect()
+        _G.PlayerConnections[player] = nil
+    end
+end
+
+for _, player in pairs(Players:GetPlayers()) do
+    if player ~= LocalPlayer then
+        onPlayerAdded(player)
+    end
+end
+
+if _G.PlayerAdded then
+    _G.PlayerAdded:Disconnect()
+end
+
+_G.PlayerAdded = Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoving)
