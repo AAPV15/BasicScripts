@@ -1,7 +1,6 @@
-local KillEntireProcess = true
+local TOGGLE_KEYCODE = Enum.KeyCode.K
 
-local TARGET_LIMB = "Torso"
-
+local TARGET_LIMB = "Head"
 local LIMB_SIZE = 20
 local LIMB_TRANSPARENCY = 0.5
 local LIMB_CAN_COLLIDE = false
@@ -15,10 +14,14 @@ local HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255)
 local HIGHLIGHT_OUTLINE_TRANSPARENCY = 0
 
 local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
 _G.PlayerConnections = _G.PlayerConnections or {}
 _G.PlayerAdded = _G.PlayerAdded or nil
+_G.PlayerRemoving = _G.PlayerRemoving or nil
+_G.OriginalProperties = _G.OriginalProperties or {}
+_G.ProcessEnabled = _G.ProcessEnabled ~= nil and _G.ProcessEnabled or true
 
 local function isPlayerAlive(character)
     if character then
@@ -29,20 +32,41 @@ local function isPlayerAlive(character)
     return false
 end
 
+local function storeOriginalProperties(LIMB)
+    _G.OriginalProperties[LIMB] = {
+        Size = LIMB.Size,
+        Transparency = LIMB.Transparency,
+        CanCollide = LIMB.CanCollide,
+        Massless = LIMB.Massless
+    }
+end
+
+local function restoreOriginalProperties(LIMB)
+    local properties = _G.OriginalProperties[LIMB]
+    if properties then
+        LIMB.Size = properties.Size
+        LIMB.Transparency = properties.Transparency
+        LIMB.CanCollide = properties.CanCollide
+        LIMB.Massless = properties.Massless
+    end
+    local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
+    if highlight then
+        highlight:Destroy()
+    end
+end
+
 local function modifyLimb(character)
     local LIMB = character:WaitForChild(TARGET_LIMB)
+    storeOriginalProperties(LIMB)
+    
     LIMB.Transparency = LIMB_TRANSPARENCY
     LIMB.CanCollide = LIMB_CAN_COLLIDE
     LIMB.Massless = LIMB_MASSLESS
     LIMB.Size = Vector3.new(LIMB_SIZE, LIMB_SIZE, LIMB_SIZE)
 
     if USE_HIGHLIGHT then
-        local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
-        if not highlight then
-            highlight = Instance.new("Highlight")
-            highlight.Name = "LimbExtenderHighlight"
-            highlight.Parent = LIMB
-        end
+        local highlight = LIMB:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", LIMB)
+        highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
         highlight.DepthMode = DEPTH_MODE
         highlight.Adornee = LIMB
@@ -50,11 +74,6 @@ local function modifyLimb(character)
         highlight.FillTransparency = HIGHLIGHT_FILL_TRANSPARENCY
         highlight.OutlineColor = HIGHLIGHT_OUTLINE_COLOR
         highlight.OutlineTransparency = HIGHLIGHT_OUTLINE_TRANSPARENCY
-    else
-        local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
-        if highlight then
-            highlight.Enabled = false
-        end
     end
 end
 
@@ -93,30 +112,81 @@ local function onPlayerRemoving(player)
     end
 end
 
-local killProcessEvent = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("BindableEvent")
-killProcessEvent.Name = "KillProcess"
-killProcessEvent.Parent = LocalPlayer
-
-
-local function handleKillEntireProcess(value)
-    if value == true then
-        if _G.PlayerAdded then
-            _G.PlayerAdded:Disconnect()
+local function enableProcess()
+    for player, connection in pairs(_G.PlayerConnections) do
+        if connection then
+            connection:Disconnect()
+            _G.PlayerConnections[player] = nil
         end
-        for player, connection in pairs(_G.PlayerConnections) do
-            if connection then
-                connection:Disconnect()
-                _G.PlayerConnections[player] = nil
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            onPlayerAdded(player)
+        end
+    end
+
+    if _G.PlayerAdded then
+        _G.PlayerAdded:Disconnect()
+    end
+
+    if _G.PlayerRemoving then
+        _G.PlayerRemoving:Disconnect()
+    end
+
+    _G.PlayerAdded = Players.PlayerAdded:Connect(onPlayerAdded)
+    _G.PlayerRemoving = Players.PlayerRemoving:Connect(onPlayerRemoving)
+    _G.ProcessEnabled = true
+end
+
+local function disableProcess()
+    if _G.PlayerAdded then
+        _G.PlayerAdded:Disconnect()
+    end
+
+    if _G.PlayerRemoving then
+        _G.PlayerRemoving:Disconnect()
+    end
+
+    for player, connection in pairs(_G.PlayerConnections) do
+        if connection then
+            connection:Disconnect()
+            _G.PlayerConnections[player] = nil
+        end
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character then
+            local LIMB = player.Character:FindFirstChild(TARGET_LIMB)
+            if LIMB then
+                restoreOriginalProperties(LIMB)
             end
         end
-        script:Destroy()
+    end
+    _G.ProcessEnabled = false
+end
+
+local function toggleProcess()
+    if _G.ProcessEnabled then
+        disableProcess()
+    else
+        enableProcess()
     end
 end
 
-killProcessEvent.Event:Connect(handleKillEntireProcess)
+local function onKeyPress(input, gameProcessedEvent)
+    if gameProcessedEvent then return end
+    if input.KeyCode == TOGGLE_KEYCODE then
+        toggleProcess()
+    end
+end
 
-if KillEntireProcess then
-    killProcessEvent:Fire(true)
+if _G.PlayerAdded then
+    _G.PlayerAdded:Disconnect()
+end
+
+if _G.PlayerRemoving then
+    _G.PlayerRemoving:Disconnect()
 end
 
 for player, connection in pairs(_G.PlayerConnections) do
@@ -126,15 +196,11 @@ for player, connection in pairs(_G.PlayerConnections) do
     end
 end
 
-for _, player in pairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        onPlayerAdded(player)
-    end
-end
+UserInputService.InputBegan:Disconnect(onKeyPress)
+UserInputService.InputBegan:Connect(onKeyPress)
 
-if _G.PlayerAdded then
-    _G.PlayerAdded:Disconnect()
+if _G.ProcessEnabled then
+    enableProcess()
+else
+    disableProcess()
 end
-
-_G.PlayerAdded = Players.PlayerAdded:Connect(onPlayerAdded)
-Players.PlayerRemoving:Connect(onPlayerRemoving)
