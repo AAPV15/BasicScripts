@@ -1,22 +1,24 @@
-_G.Settings = _G.Settings or
-{
+local defaultSettings = {
 KEYCODE = Enum.KeyCode.K,
-
-TEAM_CHECK = true,
-    
 TARGET_LIMB = "Head",
 LIMB_SIZE = 10,
 LIMB_TRANSPARENCY = 0.5,
 LIMB_CAN_COLLIDE = false,
 LIMB_MASSLESS = true,
-
+TEAM_CHECK = false,
 USE_HIGHLIGHT = true,
-DEPTH_MODE = Enum.HighlightDepthMode.AlwaysOnTop,
+DEPTH_MODE = Enum.HighlightDepthMode.Occluded,
 HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
 HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
 HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
 HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
 }
+
+for key, value in pairs(defaultSettings) do
+    if _G.Settings[key] == nil then
+        _G.Settings[key] = value
+    end
+end
 
 _G.MainInfo = _G.MainInfo or {}
 
