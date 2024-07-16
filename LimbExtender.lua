@@ -89,7 +89,7 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
-    local humanoid = character:WaitForChild("Humanoid", 5)
+    local humanoid = character:WaitForChild("Humanoid", 0.5)
 
     if humanoid then
         humanoid:GetPropertyChangedSignal("Health"):Connect(function()
