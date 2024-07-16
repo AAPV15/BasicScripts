@@ -1,4 +1,23 @@
 _G.MainInfo = _G.MainInfo or {}
+_G.Settings = _G.Settings or
+{
+KEYCODE = Enum.KeyCode.K,
+
+TEAM_CHECK = true
+    
+TARGET_LIMB = "Head",
+LIMB_SIZE = 10,
+LIMB_TRANSPARENCY = 0.5,
+LIMB_CAN_COLLIDE = false,
+LIMB_MASSLESS = true,
+
+USE_HIGHLIGHT = true,
+DEPTH_MODE = Enum.HighlightDepthMode.AlwaysOnTop,
+HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
+HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
+HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
+HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
+}
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -65,7 +84,7 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
-    if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
+    if TEAM_CHECK and LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
         coroutine.wrap(function()
             while not isPlayerAlive(character) do
                 task.wait()
@@ -142,7 +161,6 @@ end
 function onKeyPress(input, gameProcessedEvent)
     if gameProcessedEvent then return end
     if input.KeyCode == _G.Settings.KEYCODE then
-        print("test2")
         if killProcess:GetAttribute("KillProcess") == false then
             killProcess:SetAttribute("KillProcess", true)
             killEntireProcess()
