@@ -69,8 +69,7 @@ local function restoreOriginalProperties(LIMB)
 end
 
 local function modifyLimb(character)
-    local LIMB = character:WaitForChild(_G.Settings.TARGET_LIMB, 1)
-    if not LIMB then return end
+    local LIMB = character[_G.Settings.TARGET_LIMB]
     storeOriginalProperties(LIMB)
     
     LIMB.Transparency = _G.Settings.LIMB_TRANSPARENCY
