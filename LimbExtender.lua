@@ -33,7 +33,6 @@ local function restoreOriginalProperties(LIMB)
         LIMB.Transparency = properties.Transparency
         LIMB.CanCollide = properties.CanCollide
         LIMB.Massless = properties.Massless
-        _G.MainInfo[LIMB] = nil
     end
     local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
     if highlight then
@@ -110,6 +109,7 @@ local function killEntireProcess()
             local LIMB = player.Character:FindFirstChild(_G.MainInfo.TARGET_LIMB)
             if LIMB then
                 restoreOriginalProperties(LIMB)
+                _G.MainInfo[LIMB] = nil
             end
         end
     end
