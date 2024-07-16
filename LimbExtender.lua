@@ -84,7 +84,7 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
-    if TEAM_CHECK and LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
+    if _G.Settings.TEAM_CHECK and LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
         coroutine.wrap(function()
             while not isPlayerAlive(character) do
                 task.wait()
