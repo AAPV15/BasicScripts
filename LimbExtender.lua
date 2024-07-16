@@ -133,8 +133,8 @@ local function handleCharacter(character)
 end
 
 local function onCharacterAdded(player)
-    if _G.MainInfo[player] then
-        _G.MainInfo[player]:Disconnect()
+    if _G.MainInfo[player.Name .. " Character"] then
+        _G.MainInfo[player.Name .. " Character"]:Disconnect()
     end
     _G.MainInfo[player.Name .. " Character"] = player.CharacterAdded:Connect(handleCharacter)
 end
@@ -147,9 +147,13 @@ local function onPlayerAdded(player)
 end
 
 local function onPlayerRemoving(player)
-    if _G.MainInfo[player] then
-        _G.MainInfo[player]:Disconnect()
-        _G.MainInfo[player] = nil
+    if _G.MainInfo[player.Name .. " Character"] then
+        _G.MainInfo[player.Name .. " Character"]:Disconnect()
+        _G.MainInfo[player.Name .. " Character"] = nil
+    end
+    if _G.MainInfo[player.Name .. " Humanoid"] then
+        _G.MainInfo[player.Name .. " Humanoid"]:Disconnect()
+        _G.MainInfo[player.Name .. " Humanoid"] = nil
     end
 end
 
