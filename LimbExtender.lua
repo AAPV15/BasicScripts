@@ -96,12 +96,12 @@ end
 local function killEntireProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
         print(typeof(connection))
-        if typeof(connection) == "connection" then
+        --[[if typeof(connection) == "connection" then
             if connection then
                 connection:Disconnect()
                 _G.MainInfo[connectionName] = nil
             end
-        end
+        end]]
     end
 
     for _, player in pairs(Players:GetPlayers()) do
