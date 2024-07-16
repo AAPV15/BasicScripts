@@ -113,6 +113,7 @@ local function killEntireProcess()
             end
         end
     end
+     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
 
 local function startProcess()
@@ -157,5 +158,4 @@ if killProcess:GetAttribute("KillProcess") == false then
     startProcess()
 else
     killEntireProcess()
-    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
