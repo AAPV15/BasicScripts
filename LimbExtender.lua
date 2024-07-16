@@ -94,6 +94,7 @@ local function onPlayerRemoving(player)
 end
 
 local function killEntireProcess()
+        _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
     for connectionName, connection in pairs(_G.MainInfo) do
         print(typeof(connection))
         --[[if typeof(connection) == "connection" then
