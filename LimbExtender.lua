@@ -95,7 +95,7 @@ end
 
 local function killEntireProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
-        if typeof(connection) ~= "table" then
+        if typeof(connection) == "connection" then
             if connection then
                 connection:Disconnect()
                 _G.MainInfo[connectionName] = nil
@@ -117,7 +117,7 @@ end
 
 local function startProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
-        if typeof(connection) ~= "table" then
+        if typeof(connection) == "connection" then
             if connection then
                 connection:Disconnect()
                 _G.MainInfo[connectionName] = nil
