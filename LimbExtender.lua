@@ -85,17 +85,23 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
-    coroutine.wrap(function()
-        while not isPlayerAlive(character) do
-            task.wait()
-        end
-        modifyLimb(character)
-            character.Humanoid.Died:Once(function()
-                if character:FindFirstChild(_G.Settings.TARGET_LIMB) then
-                    restoreOriginalProperties(LIMB)
+    if _G.Settings.TEAM_CHECK or _G.Settings.TEAM_CHECK == nil then
+        if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
+            coroutine.wrap(function()
+                while not isPlayerAlive(character) do
+                    task.wait()
                 end
-            end)
-    end)()
+                modifyLimb(character)
+            end)()
+        end
+    else
+        coroutine.wrap(function()
+            while not isPlayerAlive(character) do
+                task.wait()
+            end
+            modifyLimb(character)
+        end)()
+    end
 end
 
 local function onCharacterAdded(player)
