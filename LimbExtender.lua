@@ -93,9 +93,9 @@ local function handleCharacter(character)
 
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH == true then
         local humanoid = character:WaitForChild("Humanoid", 0.5)
-
-        if humanoid then
-            _G.MainInfo[Players:GetPlayerFromCharacter(character)][character] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+        local player = Players:GetPlayerFromCharacter(character)
+        if humanoid and player then
+            _G.MainInfo[player][character] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
                 if humanoid.Health <= 0 then
                     local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
                     if LIMB then
