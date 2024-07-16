@@ -142,7 +142,6 @@ if killProcess:GetAttribute("KillProcess") == nil then
 end
 
 function onKeyPress(input, gameProcessedEvent)
-    print("test")
     if gameProcessedEvent then return end
     if input.KeyCode == _G.MainInfo.KEYCODE then
         print("test2")
