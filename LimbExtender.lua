@@ -136,7 +136,6 @@ local function startProcess()
     _G.MainInfo["PlayerAdded"] = Players.PlayerAdded:Connect(onPlayerAdded)
     _G.MainInfo["PlayerRemoving"] = Players.PlayerRemoving:Connect(onPlayerRemoving)
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
-    killProcess:SetAttribute("KillProcess", false)
 end
 
 if killProcess:GetAttribute("KillProcess") == nil then 
@@ -147,8 +146,10 @@ function onKeyPress(input, gameProcessedEvent)
     if gameProcessedEvent then return end
     if input.KeyCode == _G.MainInfo.KEYCODE then
         if killProcess:GetAttribute("KillProcess") == false then
+            killProcess:SetAttribute("KillProcess", true)
             killEntireProcess()
         else
+            killProcess:SetAttribute("KillProcess", false)
             startProcess()
         end
     end
