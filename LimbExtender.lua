@@ -179,9 +179,12 @@ local function startProcess()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             if player.Character then
-                local LIMB = player.Character:FindFirstChild(killProcess:GetAttribute("PreviousLimb"))
-                if LIMB then
-                    restoreOriginalProperties(LIMB)
+                local prevLimb = killProcess:GetAttribute("PreviousLimb")
+                if prevLimb then
+                    local LIMB = player.Character:FindFirstChild(killProcess:GetAttribute("PreviousLimb"))
+                    if LIMB then
+                        restoreOriginalProperties(LIMB)
+                    end
                 end
             end
             onPlayerAdded(player)
