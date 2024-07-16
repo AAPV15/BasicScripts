@@ -2,12 +2,11 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
-_G.MainInfo = {}
+_G.MainInfo = _G.MainInfo or {}
 
-local killProcessEvent = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("BindableEvent")
-killProcessEvent.Name = "KillProcess"
-killProcessEvent.Parent = LocalPlayer
-killProcessEvent:SetAttribute("KillProcess", true)
+local killProcess = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("Configuration")
+killProcess.Name = "KillProcess"
+killProcess.Parent = LocalPlayer
 
 local function isPlayerAlive(character)
     if character then
@@ -19,12 +18,14 @@ local function isPlayerAlive(character)
 end
 
 local function storeOriginalProperties(LIMB)
+    if not _G.MainInfo[LIMB] then
     _G.MainInfo[LIMB] = {
         Size = LIMB.Size,
         Transparency = LIMB.Transparency,
         CanCollide = LIMB.CanCollide,
         Massless = LIMB.Massless
     }
+    end
 end
 
 local function restoreOriginalProperties(LIMB)
@@ -34,6 +35,7 @@ local function restoreOriginalProperties(LIMB)
         LIMB.Transparency = properties.Transparency
         LIMB.CanCollide = properties.CanCollide
         LIMB.Massless = properties.Massless
+        _G.MainInfo[LIMB] = nil
     end
     local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
     if highlight then
@@ -70,9 +72,6 @@ local function handleCharacter(character)
                 task.wait()
             end
             modifyLimb(character)
-            character.Humanoid.Died:Once(function()
-                character:Destroy()
-            end)
         end)()
     end
 end
@@ -114,6 +113,8 @@ local function killEntireProcess()
             end
         end
     end
+    killProcess:SetAttribute("KillProcess", true)
+    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
 
 local function startProcess()
@@ -135,20 +136,26 @@ local function startProcess()
     _G.MainInfo["PlayerAdded"] = Players.PlayerAdded:Connect(onPlayerAdded)
     _G.MainInfo["PlayerRemoving"] = Players.PlayerRemoving:Connect(onPlayerRemoving)
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
+    killProcess:SetAttribute("KillProcess", false)
 end
 
-startProcess()
-killProcessEvent.Event:Connect(killEntireProcess)
+if killProcess:GetAttribute("KillProcess") == nil then 
+    killProcess:SetAttribute("KillProcess", false)
+end
 
-local function onKeyPress(input, gameProcessedEvent)
+function onKeyPress(input, gameProcessedEvent)
     if gameProcessedEvent then return end
-    if input.KeyCode == Enum.KeyCode.K then
-        if killProcessEvent:GetAttribute("KillProcess") == true then
-            killProcessEvent:Fire()
-            killProcessEvent:SetAttribute("KillProcess", false)
+    if input.KeyCode == KEYCODE then
+        if killProcess:GetAttribute("KillProcess") == false then
+            killEntireProcess()
         else
             startProcess()
-            killProcessEvent:SetAttribute("KillProcess", true)
         end
     end
+end
+
+if killProcess:GetAttribute("KillProcess") == false then
+    startProcess()
+else
+    killEntireProcess()
 end
