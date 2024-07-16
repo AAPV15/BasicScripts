@@ -3,7 +3,7 @@ _G.Settings = _G.Settings or
 {
 KEYCODE = Enum.KeyCode.K,
 
-TEAM_CHECK = true
+TEAM_CHECK = true,
     
 TARGET_LIMB = "Head",
 LIMB_SIZE = 10,
