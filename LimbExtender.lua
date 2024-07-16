@@ -106,7 +106,7 @@ local function handleCharacter(character)
         end
     end
     
-    if _G.Settings.TEAM_CHECK or _G.Settings.TEAM_CHECK == nil then
+    if _G.Settings.TEAM_CHECK then
         if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
             coroutine.wrap(function()
                 while not isPlayerAlive(character) do
