@@ -122,7 +122,7 @@ local function startProcess()
                 connection:Disconnect()
                 _G.MainInfo[connectionName] = nil
             end
-        end]]
+        end
     end
 
     for _, player in pairs(Players:GetPlayers()) do
