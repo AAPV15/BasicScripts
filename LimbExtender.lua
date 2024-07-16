@@ -181,7 +181,7 @@ local function startProcess()
             if player.Character then
                 local prevLimb = killProcess:GetAttribute("PreviousLimb")
                 if prevLimb then
-                    local LIMB = player.Character:FindFirstChild(killProcess:GetAttribute("PreviousLimb"))
+                    local LIMB = player.Character:FindFirstChild(prevLimb)
                     if LIMB then
                         restoreOriginalProperties(LIMB)
                     end
