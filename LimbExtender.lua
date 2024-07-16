@@ -95,13 +95,12 @@ end
 
 local function killEntireProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
-        print(typeof(connection))
-        --[[if typeof(connection) == "connection" then
+        if typeof(connection) == "RBXScriptConnection" then
             if connection then
                 connection:Disconnect()
                 _G.MainInfo[connectionName] = nil
             end
-        end]]
+        end
     end
 
     for _, player in pairs(Players:GetPlayers()) do
@@ -119,7 +118,7 @@ end
 local function startProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
         print(typeof(connection))
-        --[[if typeof(connection) == "connection" then
+        if typeof(connection) == "RBXScriptConnection" then
             if connection then
                 connection:Disconnect()
                 _G.MainInfo[connectionName] = nil
@@ -154,8 +153,6 @@ function onKeyPress(input, gameProcessedEvent)
     end
 end
 
-    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
-print(typeof(_G.MainInfo["InputBegan"]))
 if killProcess:GetAttribute("KillProcess") == false then
     startProcess()
 else
