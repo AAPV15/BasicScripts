@@ -1,18 +1,18 @@
 local defaultSettings = {
-KEYCODE = Enum.KeyCode.K,
-TARGET_LIMB = "Head",
-LIMB_SIZE = 10,
-LIMB_TRANSPARENCY = 0.5,
-LIMB_CAN_COLLIDE = false,
-LIMB_MASSLESS = true,
-TEAM_CHECK = false,
-USE_HIGHLIGHT = true,
-DEPTH_MODE = Enum.HighlightDepthMode.Occluded,
-HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
-HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
-HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
-HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
-RESTORE_ORIGINAL_LIMB_ON_DEATH = false
+    KEYCODE = Enum.KeyCode.K,
+    TARGET_LIMB = "Head",
+    LIMB_SIZE = 10,
+    LIMB_TRANSPARENCY = 0.5,
+    LIMB_CAN_COLLIDE = false,
+    LIMB_MASSLESS = true,
+    TEAM_CHECK = false,
+    USE_HIGHLIGHT = true,
+    DEPTH_MODE = Enum.HighlightDepthMode.Occluded,
+    HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
+    HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
+    HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
+    HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
+    RESTORE_ORIGINAL_LIMB_ON_DEATH = false
 }
 
 _G.Settings = _G.Settings or defaultSettings
@@ -95,7 +95,7 @@ local function handleCharacter(character)
         local humanoid = character:WaitForChild("Humanoid", 0.5)
         local player = Players:GetPlayerFromCharacter(character)
         if humanoid and player then
-            _G.MainInfo[player][character] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+            _G.MainInfo[player.Name .. " Humanoid"] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
                 if humanoid.Health <= 0 then
                     local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
                     if LIMB then
@@ -129,7 +129,7 @@ local function onCharacterAdded(player)
     if _G.MainInfo[player] then
         _G.MainInfo[player]:Disconnect()
     end
-    _G.MainInfo[player] = player.CharacterAdded:Connect(handleCharacter)
+    _G.MainInfo[player.Name .. " Character"] = player.CharacterAdded:Connect(handleCharacter)
 end
 
 local function onPlayerAdded(player)
