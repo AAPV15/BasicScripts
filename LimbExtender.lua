@@ -113,7 +113,6 @@ local function killEntireProcess()
             end
         end
     end
-    killProcess:SetAttribute("KillProcess", true)
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
 
