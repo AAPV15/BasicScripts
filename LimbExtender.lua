@@ -104,8 +104,6 @@ local function killEntireProcess()
         end
     end
     
-    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
-    
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character then
             local LIMB = player.Character:FindFirstChild(_G.MainInfo.TARGET_LIMB)
@@ -159,4 +157,5 @@ if killProcess:GetAttribute("KillProcess") == false then
     startProcess()
 else
     killEntireProcess()
+    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
