@@ -91,7 +91,7 @@ end
 
 local function handleCharacter(character)
 
-    if RESTORE_ORIGINAL_LIMB_ON_DEATH == true then
+    if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH == true then
         local humanoid = character:WaitForChild("Humanoid", 0.5)
 
         if humanoid then
