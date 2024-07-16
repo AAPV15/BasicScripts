@@ -89,6 +89,17 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
+    local humanoid = character:WaitForChild("Humanoid")
+
+    humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+        if humanoid.Health <= 0 then
+            local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
+            if LIMB then
+                restoreOriginalProperties(LIMB)
+            end
+        end
+    end)
+    
     if _G.Settings.TEAM_CHECK or _G.Settings.TEAM_CHECK == nil then
         if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
             coroutine.wrap(function()
