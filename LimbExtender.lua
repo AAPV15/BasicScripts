@@ -1,23 +1,6 @@
-local KEYCODE = Enum.KeyCode.K
-
-local TARGET_LIMB = "Head"
-local LIMB_SIZE = 10
-local LIMB_TRANSPARENCY = 0.5
-local LIMB_CAN_COLLIDE = false
-local LIMB_MASSLESS = true
-
-local USE_HIGHLIGHT = true
-local DEPTH_MODE = Enum.HighlightDepthMode.Occluded
-local HIGHLIGHT_FILL_COLOR = Color3.fromRGB(255, 0, 0)
-local HIGHLIGHT_FILL_TRANSPARENCY = 0.5
-local HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255)
-local HIGHLIGHT_OUTLINE_TRANSPARENCY = 0
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
-
-_G.MainInfo = _G.MainInfo or {}
 
 local killProcess = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("Configuration")
 killProcess.Name = "KillProcess"
@@ -62,21 +45,21 @@ local function modifyLimb(character)
     local LIMB = character:WaitForChild(TARGET_LIMB)
     storeOriginalProperties(LIMB)
     
-    LIMB.Transparency = LIMB_TRANSPARENCY
-    LIMB.CanCollide = LIMB_CAN_COLLIDE
-    LIMB.Massless = LIMB_MASSLESS
-    LIMB.Size = Vector3.new(LIMB_SIZE, LIMB_SIZE, LIMB_SIZE)
+    LIMB.Transparency = _G.MainInfo.LIMB_TRANSPARENCY
+    LIMB.CanCollide = _G.MainInfo.LIMB_CAN_COLLIDE
+    LIMB.Massless = _G.MainInfo.LIMB_MASSLESS
+    LIMB.Size = Vector3.new(_G.MainInfo.LIMB_SIZE, _G.MainInfo.LIMB_SIZE, _G.MainInfo.LIMB_SIZE)
 
     if USE_HIGHLIGHT then
         local highlight = LIMB:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", LIMB)
         highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
-        highlight.DepthMode = DEPTH_MODE
+        highlight.DepthMode = _G.MainInfo.DEPTH_MODE
         highlight.Adornee = LIMB
-        highlight.FillColor = HIGHLIGHT_FILL_COLOR
-        highlight.FillTransparency = HIGHLIGHT_FILL_TRANSPARENCY
-        highlight.OutlineColor = HIGHLIGHT_OUTLINE_COLOR
-        highlight.OutlineTransparency = HIGHLIGHT_OUTLINE_TRANSPARENCY
+        highlight.FillColor = _G.MainInfo.HIGHLIGHT_FILL_COLOR
+        highlight.FillTransparency = _G.MainInfo.HIGHLIGHT_FILL_TRANSPARENCY
+        highlight.OutlineColor =_G.MainInfo.HIGHLIGHT_OUTLINE_COLOR
+        highlight.OutlineTransparency = _G.MainInfo.HIGHLIGHT_OUTLINE_TRANSPARENCY
     end
 end
 
