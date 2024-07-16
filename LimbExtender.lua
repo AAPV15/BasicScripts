@@ -9,7 +9,7 @@ killProcess.Parent = LocalPlayer
 local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChild("Humanoid")
-        local LIMB = character:FindFirstChild(TARGET_LIMB)
+        local LIMB = character:FindFirstChild(_G.MainInfo.TARGET_LIMB)
         return LIMB and humanoid and humanoid.Health > 0
     end
     return false
@@ -42,7 +42,7 @@ local function restoreOriginalProperties(LIMB)
 end
 
 local function modifyLimb(character)
-    local LIMB = character:WaitForChild(TARGET_LIMB)
+    local LIMB = character:WaitForChild(_G.MainInfo.TARGET_LIMB)
     storeOriginalProperties(LIMB)
     
     LIMB.Transparency = _G.MainInfo.LIMB_TRANSPARENCY
@@ -58,7 +58,7 @@ local function modifyLimb(character)
         highlight.Adornee = LIMB
         highlight.FillColor = _G.MainInfo.HIGHLIGHT_FILL_COLOR
         highlight.FillTransparency = _G.MainInfo.HIGHLIGHT_FILL_TRANSPARENCY
-        highlight.OutlineColor =_G.MainInfo.HIGHLIGHT_OUTLINE_COLOR
+        highlight.OutlineColor = _G.MainInfo.HIGHLIGHT_OUTLINE_COLOR
         highlight.OutlineTransparency = _G.MainInfo.HIGHLIGHT_OUTLINE_TRANSPARENCY
     end
 end
