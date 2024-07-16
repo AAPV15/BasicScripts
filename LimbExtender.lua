@@ -1,3 +1,18 @@
+local KEYCODE = Enum.KeyCode.K
+
+local TARGET_LIMB = "Head"
+local LIMB_SIZE = 10
+local LIMB_TRANSPARENCY = 0.5
+local LIMB_CAN_COLLIDE = false
+local LIMB_MASSLESS = true
+
+local USE_HIGHLIGHT = true
+local DEPTH_MODE = Enum.HighlightDepthMode.Occluded
+local HIGHLIGHT_FILL_COLOR = Color3.fromRGB(255, 0, 0)
+local HIGHLIGHT_FILL_TRANSPARENCY = 0.5
+local HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255)
+local HIGHLIGHT_OUTLINE_TRANSPARENCY = 0
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
