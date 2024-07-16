@@ -95,6 +95,7 @@ end
 
 local function killEntireProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
+        print(typeof(connection))
         if typeof(connection) == "connection" then
             if connection then
                 connection:Disconnect()
