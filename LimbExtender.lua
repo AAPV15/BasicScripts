@@ -17,12 +17,12 @@ end
 
 local function storeOriginalProperties(LIMB)
     if not _G.MainInfo[LIMB] then
-    _G.MainInfo[LIMB] = {
-        Size = LIMB.Size,
-        Transparency = LIMB.Transparency,
-        CanCollide = LIMB.CanCollide,
-        Massless = LIMB.Massless
-    }
+        _G.MainInfo[LIMB] = {
+            Size = LIMB.Size,
+            Transparency = LIMB.Transparency,
+            CanCollide = LIMB.CanCollide,
+            Massless = LIMB.Massless
+        }
     end
 end
 
@@ -50,7 +50,7 @@ local function modifyLimb(character)
     LIMB.Massless = _G.MainInfo.LIMB_MASSLESS
     LIMB.Size = Vector3.new(_G.MainInfo.LIMB_SIZE, _G.MainInfo.LIMB_SIZE, _G.MainInfo.LIMB_SIZE)
 
-    if USE_HIGHLIGHT then
+    if _G.MainInfo.USE_HIGHLIGHT then
         local highlight = LIMB:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", LIMB)
         highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
@@ -89,8 +89,10 @@ local function onPlayerAdded(player)
 end
 
 local function onPlayerRemoving(player)
-    _G.MainInfo[player]:Disconnect()
-    _G.MainInfo[player] = nil
+    if _G.MainInfo[player] then
+        _G.MainInfo[player]:Disconnect()
+        _G.MainInfo[player] = nil
+    end
 end
 
 local function killEntireProcess()
@@ -105,7 +107,7 @@ local function killEntireProcess()
 
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character then
-            local LIMB = player.Character:FindFirstChild(TARGET_LIMB)
+            local LIMB = player.Character:FindFirstChild(_G.MainInfo.TARGET_LIMB)
             if LIMB then
                 restoreOriginalProperties(LIMB)
             end
@@ -143,7 +145,7 @@ end
 
 function onKeyPress(input, gameProcessedEvent)
     if gameProcessedEvent then return end
-    if input.KeyCode == KEYCODE then
+    if input.KeyCode == _G.MainInfo.KEYCODE then
         if killProcess:GetAttribute("KillProcess") == false then
             killEntireProcess()
         else
