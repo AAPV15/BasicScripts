@@ -95,7 +95,7 @@ local function handleCharacter(character)
         local humanoid = character:WaitForChild("Humanoid", 0.5)
 
         if humanoid then
-            _G.MainInfo[player][character] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+            _G.MainInfo[Players:GetPlayerFromCharacter(character)][character] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
                 if humanoid.Health <= 0 then
                     local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
                     if LIMB then
