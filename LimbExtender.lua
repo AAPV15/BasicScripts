@@ -175,9 +175,16 @@ local function startProcess()
             _G.MainInfo[connectionName] = nil
         end
     end
-
+    
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
+            if player.Character then
+                local LIMB = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
+                if LIMB then
+                    restoreOriginalProperties(LIMB)
+                    _G.MainInfo[LIMB] = nil
+                end
+            end
             onPlayerAdded(player)
         end
     end
