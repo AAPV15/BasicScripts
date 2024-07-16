@@ -35,9 +35,9 @@ killProcess.Parent = LocalPlayer
 
 local function isPlayerAlive(character)
     if character then
-        local humanoid = character:FindFirstChild("Humanoid")
+        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
-        return LIMB and humanoid and humanoid.Health > 0
+        return humanoid
     end
     return false
 end
@@ -69,7 +69,8 @@ local function restoreOriginalProperties(LIMB)
 end
 
 local function modifyLimb(character)
-    local LIMB = character:WaitForChild(_G.Settings.TARGET_LIMB)
+    local LIMB = character:WaitForChild(_G.Settings.TARGET_LIMB, 1)
+    if not LIMB then return end
     storeOriginalProperties(LIMB)
     
     LIMB.Transparency = _G.Settings.LIMB_TRANSPARENCY
@@ -93,7 +94,13 @@ end
 local function handleCharacter(character)
 
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH == true then
-        local humanoid = character:WaitForChild("Humanoid", 0.5)
+        local holdtick = tick()
+        local humanoid = nil
+        while tick() - holdtick < 0.5 do
+            humanoid = isPlayerAlive(character)
+            if humanoid then
+            break 
+        end
         local player = Players:GetPlayerFromCharacter(character)
         if humanoid and player then
             _G.MainInfo[player.Name .. " Humanoid"] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
@@ -181,7 +188,7 @@ local function startProcess()
             if player.Character then
                 local prevLimb = killProcess:GetAttribute("PreviousLimb")
                 if prevLimb then
-                    local LIMB = player.Character:FindFirstChild(prevLimb)
+                    local LIMB = player.Character:FindFirstChild(killProcess:GetAttribute("PreviousLimb"))
                     if LIMB then
                         restoreOriginalProperties(LIMB)
                     end
