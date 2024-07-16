@@ -94,12 +94,10 @@ local function handleCharacter(character)
 
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH == true then
         local holdtick = tick()
-        local humanoid = nil
-        while tick() - holdtick < 0.5 do
-            humanoid = isPlayerAlive(character)
-            if humanoid then
-            break 
+        while not isPlayerAlive(character) do
+            task.wait()
         end
+        local humanoid = isPlayerAlive(character)
         local player = Players:GetPlayerFromCharacter(character)
         if humanoid and player then
             _G.MainInfo[player.Name .. " Humanoid"] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
