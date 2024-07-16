@@ -12,6 +12,7 @@ HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
 HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
 HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
 HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
+RESTORE_ORIGINAL_LIMB_ON_DEATH = false
 }
 
 _G.Settings = _G.Settings or defaultSettings
@@ -89,17 +90,20 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
-    local humanoid = character:WaitForChild("Humanoid", 0.5)
 
-    if humanoid then
-        humanoid:GetPropertyChangedSignal("Health"):Connect(function()
-            if humanoid.Health <= 0 then
-                local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
-                if LIMB then
-                    restoreOriginalProperties(LIMB)
+    if RESTORE_ORIGINAL_LIMB_ON_DEATH == true then
+        local humanoid = character:WaitForChild("Humanoid", 0.5)
+
+        if humanoid then
+            _G.MainInfo[player][character] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
+                if humanoid.Health <= 0 then
+                    local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
+                    if LIMB then
+                        restoreOriginalProperties(LIMB)
+                    end
                 end
-            end
-        end)
+            end)
+        end
     end
     
     if _G.Settings.TEAM_CHECK or _G.Settings.TEAM_CHECK == nil then
