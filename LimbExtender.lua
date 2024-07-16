@@ -101,6 +101,8 @@ local function handleCharacter(character)
                     if LIMB then
                         restoreOriginalProperties(LIMB)
                     end
+                    _G.MainInfo[player.Name .. " Humanoid"]:Disconnect()
+                    _G.MainInfo[player.Name .. " Humanoid"] = nil
                 end
             end)
         end
