@@ -155,7 +155,7 @@ function onKeyPress(input, gameProcessedEvent)
 end
 
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
-
+print(typeof(_G.MainInfo["InputBegan"]))
 if killProcess:GetAttribute("KillProcess") == false then
     startProcess()
 else
