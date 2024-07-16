@@ -60,6 +60,7 @@ local function restoreOriginalProperties(LIMB)
         LIMB.Transparency = properties.Transparency
         LIMB.CanCollide = properties.CanCollide
         LIMB.Massless = properties.Massless
+        _G.MainInfo[LIMB] = nil
     end
     local highlight = LIMB:FindFirstChild("LimbExtenderHighlight")
     if highlight then
@@ -161,7 +162,6 @@ local function killEntireProcess()
             local LIMB = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
             if LIMB then
                 restoreOriginalProperties(LIMB)
-                _G.MainInfo[LIMB] = nil
             end
         end
     end
@@ -179,16 +179,16 @@ local function startProcess()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             if player.Character then
-                local LIMB = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
+                local LIMB = player.Character:FindFirstChild(killProcess:GetAttribute("PreviousLimb"))
                 if LIMB then
                     restoreOriginalProperties(LIMB)
-                    _G.MainInfo[LIMB] = nil
                 end
             end
             onPlayerAdded(player)
         end
     end
-
+    
+    killProcess:SetAttribute("PreviousLimb", _G.Settings.TARGET_LIMB)
     _G.MainInfo["PlayerAdded"] = Players.PlayerAdded:Connect(onPlayerAdded)
     _G.MainInfo["PlayerRemoving"] = Players.PlayerRemoving:Connect(onPlayerRemoving)
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
