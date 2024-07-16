@@ -1,4 +1,3 @@
-_G.MainInfo = _G.MainInfo or {}
 _G.Settings = _G.Settings or
 {
 KEYCODE = Enum.KeyCode.K,
@@ -18,6 +17,8 @@ HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
 HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
 HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
 }
+
+_G.MainInfo = _G.MainInfo or {}
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -84,14 +85,12 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
-    if _G.Settings.TEAM_CHECK and LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
-        coroutine.wrap(function()
-            while not isPlayerAlive(character) do
-                task.wait()
-            end
-            modifyLimb(character)
-        end)()
-    end
+    coroutine.wrap(function()
+        while not isPlayerAlive(character) do
+            task.wait()
+        end
+        modifyLimb(character)
+    end)()
 end
 
 local function onCharacterAdded(player)
