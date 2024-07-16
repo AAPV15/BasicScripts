@@ -90,6 +90,11 @@ local function handleCharacter(character)
             task.wait()
         end
         modifyLimb(character)
+            character.Humanoid.Died:Once(function()
+                if character:FindFirstChild(_G.Settings.TARGET_LIMB) then
+                    restoreOriginalProperties(LIMB)
+                end
+            end)
     end)()
 end
 
@@ -153,10 +158,6 @@ local function startProcess()
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
 
-if killProcess:GetAttribute("KillProcess") == nil then 
-    killProcess:SetAttribute("KillProcess", false)
-end
-
 function onKeyPress(input, gameProcessedEvent)
     if gameProcessedEvent then return end
     if input.KeyCode == _G.Settings.KEYCODE then
@@ -168,6 +169,10 @@ function onKeyPress(input, gameProcessedEvent)
             startProcess()
         end
     end
+end
+
+if killProcess:GetAttribute("KillProcess") == nil then 
+    killProcess:SetAttribute("KillProcess", false)
 end
 
 if killProcess:GetAttribute("KillProcess") == false then
