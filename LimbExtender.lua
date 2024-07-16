@@ -14,9 +14,7 @@ HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
 HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
 }
 
-if _G.Settings == nil then
-    _G.Settings = {}
-end
+_G.Settings = _G.Settings or defaultSettings
 
 for key, value in pairs(defaultSettings) do
     if _G.Settings[key] == nil then
