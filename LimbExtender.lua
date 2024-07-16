@@ -97,6 +97,7 @@ end
 local function killEntireProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
+            print(connectionName, connection)
             connection:Disconnect()
             _G.MainInfo[connectionName] = nil
         end
