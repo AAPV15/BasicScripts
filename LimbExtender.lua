@@ -120,6 +120,7 @@ local function startProcess()
     for connectionName, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
             if connection then
+                print(connectionName)
                 connection:Disconnect()
                 _G.MainInfo[connectionName] = nil
             end
