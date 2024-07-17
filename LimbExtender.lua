@@ -37,7 +37,7 @@ local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
-        return humanoid
+        return humanoid and LIMB
     end
     return false
 end
@@ -97,7 +97,7 @@ local function handleCharacter(character)
         while not isPlayerAlive(character) do
             task.wait()
         end
-        local humanoid = isPlayerAlive(character)
+        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local player = Players:GetPlayerFromCharacter(character)
         if humanoid and player then
             _G.MainInfo[player.Name .. " Humanoid"] = humanoid:GetPropertyChangedSignal("Health"):Connect(function()
