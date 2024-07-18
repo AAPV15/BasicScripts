@@ -26,6 +26,14 @@ local LocalPlayer = Players.LocalPlayer
 local killProcess = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("Configuration", LocalPlayer)
 killProcess.Name = "KillProcess"
 
+local function safeCall(func, ...)
+    local success, result = pcall(func, ...)
+    if not success then
+        warn("Error in function: " .. tostring(result))
+    end
+    return success, result
+end
+
 local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
@@ -86,7 +94,7 @@ local function modifyLimb(character)
     end
 end
 
-local function handleCharacter(character)
+local function handleLimbModification(character)
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
         local humanoid = character:WaitForChild("Humanoid")
         _G.MainInfo[humanoid] = humanoid.Died:Connect(function()
@@ -97,19 +105,37 @@ local function handleCharacter(character)
         end)
     end
 
-    local function checkAndModifyLimb()
-        while not isPlayerAlive(character) do
-            task.wait()
-        end
-        modifyLimb(character)
+    while not isPlayerAlive(character) do
+        task.wait()
     end
+    modifyLimb(character)
+end
 
+local function connectTeamCheck(character)
     if _G.Settings.TEAM_CHECK then
         if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
-            coroutine.wrap(checkAndModifyLimb)()
+            coroutine.wrap(handleLimbModification)(character)
         end
     else
-        coroutine.wrap(checkAndModifyLimb)()
+        coroutine.wrap(handleLimbModification)(character)
+    end
+end
+
+local function handleCharacter(character)
+    connectTeamCheck(character)
+end
+
+local function connectPlayerEvents(player)
+    onCharacterAdded(player)
+    if player.Character then
+        handleCharacter(player.Character)
+    end
+end
+
+local function disconnectPlayerEvents(player)
+    if _G.MainInfo[player] then
+        _G.MainInfo[player]:Disconnect()
+        _G.MainInfo[player] = nil
     end
 end
 
@@ -121,26 +147,21 @@ local function onCharacterAdded(player)
 end
 
 local function onPlayerAdded(player)
-    onCharacterAdded(player)
-    if player.Character then
-        handleCharacter(player.Character)
-    end
+    connectPlayerEvents(player)
 end
 
 local function onPlayerRemoving(player)
-    if _G.MainInfo[player] then
-        _G.MainInfo[player]:Disconnect()
-        _G.MainInfo[player] = nil
-    end
+    disconnectPlayerEvents(player)
     local limb = player.Character and player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
     if limb then
         restoreOriginalProperties(limb)
     end
 end
 
-local function killEntireProcess()
-    for _, connection in pairs(_G.MainInfo) do
+local function killEntireProcess(saveInput)
+    for connectionName, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
+            if not saveInput and connectionName ~= "InputBegan" then
             connection:Disconnect()
         end
     end
@@ -153,7 +174,6 @@ local function killEntireProcess()
         end
     end
     _G.MainInfo = {}
-    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
 
 local function startProcess()
@@ -164,7 +184,7 @@ local function startProcess()
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            onPlayerAdded(player)
+            connectPlayerEvents(player)
         end
     end
 end
