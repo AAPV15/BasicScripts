@@ -25,6 +25,7 @@ end
 
 _G.MainInfo = _G.MainInfo or {}
 
+local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
@@ -37,7 +38,10 @@ local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local LIMB = character:FindFirstChild(_G.Settings.TARGET_LIMB)
-        return humanoid and LIMB
+        if humanoid and LIMB then      
+            ContentProvider:PreloadAsync({humanoid, LIMB})
+            return humanoid and LIMB
+        end
     end
     return false
 end
