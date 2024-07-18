@@ -144,7 +144,6 @@ local function killEntireProcess()
             connection:Disconnect()
         end
     end
-    _G.MainInfo = {}
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character then
             local limb = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
@@ -153,6 +152,7 @@ local function killEntireProcess()
             end
         end
     end
+    _G.MainInfo = {}
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
 
@@ -170,15 +170,16 @@ local function startProcess()
 end
 
 function onKeyPress(input, gameProcessedEvent)
-    if gameProcessedEvent then return end
-    if input.KeyCode == _G.Settings.KEYCODE then
-        local killProcessActive = killProcess:GetAttribute("KillProcess")
-        killProcess:SetAttribute("KillProcess", not killProcessActive)
-        if killProcessActive then
-            killEntireProcess()
-        else
-            startProcess()
-        end
+    if gameProcessedEvent or input.KeyCode ~= _G.Settings.KEYCODE then return end
+
+    local currentState = killProcess:GetAttribute("KillProcess")
+    local newState = not currentState
+    killProcess:SetAttribute("KillProcess", newState)
+
+    if newState then
+        startProcess()
+    else
+        killEntireProcess()
     end
 end
 
