@@ -105,7 +105,7 @@ local function modifyLimb(character)
     end
 
     if _G.Settings.USE_HIGHLIGHT then
-        local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight"))
+        local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight")
         highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
         highlight.DepthMode = _G.Settings.DEPTH_MODE
