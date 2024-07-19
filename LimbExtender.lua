@@ -112,6 +112,7 @@ local function modifyLimb(character)
         while not character[_G.Settings.TARGET_LIMB]:FindFirstChild("LimbExtenderHighlight") do
             local highlight = Instance.new("Highlight")
             highlight.Name = "LimbExtenderHighlight"
+            task.wait()
         end
         highlight.Enabled = true
         highlight.DepthMode = _G.Settings.DEPTH_MODE
