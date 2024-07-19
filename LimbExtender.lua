@@ -109,8 +109,9 @@ local function modifyLimb(character)
     end
 
     if _G.Settings.USE_HIGHLIGHT then
-        while not character[_G.Settings.TARGET_LIMB]:FindFirstChild("LimbExtenderHighlight") do
-            local highlight = Instance.new("Highlight")
+        local highlight = character[_G.Settings.TARGET_LIMB]:FindFirstChild("LimbExtenderHighlight")
+        while not highlight do
+            highlight = Instance.new("Highlight")
             highlight.Name = "LimbExtenderHighlight"
             task.wait()
         end
