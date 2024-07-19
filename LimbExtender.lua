@@ -31,12 +31,7 @@ local function isPlayerAlive(character)
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
         if humanoid and limb then
-            local assetTable = {}
-            table.insert(assetTable, limb)
-            for _, asset in pairs(limb:GetDescendants()) do 
-                table.insert(assetTable, asset)
-            end
-                ContentProvider:PreloadAsync(assetTable)
+            ContentProvider:PreloadAsync({humanoid, limb})
             return true
         end
     end
