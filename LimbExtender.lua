@@ -153,15 +153,11 @@ local function handleCharacter(character)
     end
 end
 
-local function onCharacterAdded(player)
+local function onPlayerAdded(player)
     if _G.MainInfo[player] then
         _G.MainInfo[player]:Disconnect()
     end
-    _G.MainInfo[player] = player.CharacterAdded:Connect(handleCharacter)
-end
-
-local function onPlayerAdded(player)
-    onCharacterAdded(player)
+    _G.MainInfo[player] = player.CharacterAppearanceLoaded:Connect(handleCharacter)
     if player.Character then
         handleCharacter(player.Character)
     end
