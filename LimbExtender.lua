@@ -72,8 +72,8 @@ local function modifyLimb(character)
     limb.Massless = _G.Settings.LIMB_MASSLESS
     limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
 
-    local mesh = character:FindFirstChildWhichIsA("SpecialMesh")
-    if character:FindFirstChildWhichIsA("SpecialMesh") then
+    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
+    if mesh then
         mesh:Destroy()
     end
 
