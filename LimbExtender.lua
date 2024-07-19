@@ -5,7 +5,7 @@ local defaultSettings = {
     LIMB_TRANSPARENCY = 0.5,
     LIMB_CAN_COLLIDE = false,
     LIMB_MASSLESS = true,
-    TEAM_CHECK = true,
+    TEAM_CHECK = false,
     USE_HIGHLIGHT = true,
     DEPTH_MODE = Enum.HighlightDepthMode.Occluded,
     HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
@@ -38,12 +38,19 @@ local function isPlayerAlive(character)
 end
 
 local function storeOriginalProperties(limb)
+    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
     if not _G.MainInfo[limb] then
         _G.MainInfo[limb] = {
             Size = limb.Size,
             Transparency = limb.Transparency,
             CanCollide = limb.CanCollide,
-            Massless = limb.Massless
+            Massless = limb.Massless,
+            Mesh = mesh and {
+                MeshId = mesh.MeshId,
+                TextureId = mesh.TextureId,
+                Scale = mesh.Scale,
+                Offset = mesh.Offset
+            } or nil
         }
     end
 end
@@ -55,8 +62,19 @@ local function restoreOriginalProperties(limb)
         limb.Transparency = properties.Transparency
         limb.CanCollide = properties.CanCollide
         limb.Massless = properties.Massless
+
+        -- Restore the SpecialMesh if it was saved
+        if properties.Mesh then
+            local mesh = Instance.new("SpecialMesh", limb)
+            mesh.MeshId = properties.Mesh.MeshId
+            mesh.TextureId = properties.Mesh.TextureId
+            mesh.Scale = properties.Mesh.Scale
+            mesh.Offset = properties.Mesh.Offset
+        end
+
         _G.MainInfo[limb] = nil
     end
+
     local highlight = limb:FindFirstChild("LimbExtenderHighlight")
     if highlight then
         highlight:Destroy()
@@ -65,6 +83,7 @@ end
 
 local function modifyLimb(character)
     local limb = character[_G.Settings.TARGET_LIMB]
+    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
     storeOriginalProperties(limb)
 
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
@@ -72,11 +91,10 @@ local function modifyLimb(character)
     limb.Massless = _G.Settings.LIMB_MASSLESS
     limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
 
-    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
     if mesh then
         mesh:Destroy()
     end
-    
+
     if _G.Settings.USE_HIGHLIGHT then
         local highlight = Instance.new("Highlight", limb)
         highlight.Name = "LimbExtenderHighlight"
