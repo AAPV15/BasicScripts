@@ -31,6 +31,7 @@ local function isPlayerAlive(character)
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
         if humanoid and limb then
+            ContentProvider:PreloadAsync(limb:GetDescendants())
             return true
         end
     end
