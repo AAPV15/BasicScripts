@@ -111,7 +111,7 @@ local function modifyLimb(character)
     end
 
     if _G.Settings.USE_HIGHLIGHT then
-        local highlight = Instance.new("Highlight", limb)
+        local highlight = Instance.new("Highlight")
         highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
         highlight.DepthMode = _G.Settings.DEPTH_MODE
@@ -120,6 +120,7 @@ local function modifyLimb(character)
         highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
         highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
         highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
+        highlight.Parent = limb
     end
 end
 
