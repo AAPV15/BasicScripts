@@ -23,15 +23,14 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
-local killProcess = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("Configuration", LocalPlayer)
-killProcess.Name = "KillProcess"
+local MiscData = LocalPlayer:FindFirstChild("MiscData") or Instance.new("Configuration", LocalPlayer)
+MiscData.Name = "MiscData"
 
 local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
         if humanoid and limb then
-            ContentProvider:PreloadAsync({humanoid, limb})
             return true
         end
     end
@@ -138,7 +137,7 @@ local function onPlayerRemoving(player)
     end
 end
 
-local function killEntireProcess(detectInput)
+local function terminateProcess(detectInput)
     for _, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
             connection:Disconnect()
@@ -150,8 +149,8 @@ local function killEntireProcess(detectInput)
             if limb then
                 restoreOriginalProperties(limb)
             end
-            if killProcess:GetAttribute("PreviousLimb") then
-                local limb = player.Character:FindFirstChild(killProcess:GetAttribute("PreviousLimb"))
+            if MiscData:GetAttribute("PreviousLimb") then
+                local limb = player.Character:FindFirstChild(MiscData:GetAttribute("PreviousLimb"))
                 if limb then
                     restoreOriginalProperties(limb)
                 end
@@ -160,16 +159,16 @@ local function killEntireProcess(detectInput)
     end
     _G.MainInfo = {}
     if detectInput then 
-        _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
+        _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(handleKeyPress)
     end
 end
 
-local function startProcess()
-    killEntireProcess()
-    killProcess:SetAttribute("PreviousLimb", _G.Settings.TARGET_LIMB)
+local function initiateProcess()
+    terminateProcess()
+    MiscData:SetAttribute("PreviousLimb", _G.Settings.TARGET_LIMB)
     _G.MainInfo["PlayerAdded"] = Players.PlayerAdded:Connect(onPlayerAdded)
     _G.MainInfo["PlayerRemoving"] = Players.PlayerRemoving:Connect(onPlayerRemoving)
-    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
+    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(handleKeyPress)
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             onPlayerAdded(player)
@@ -177,25 +176,26 @@ local function startProcess()
     end
 end
 
-function onKeyPress(input, gameProcessedEvent)
-    if gameProcessedEvent then return end
+function handleKeyPress(input, isGameProcessed)
+    if isGameProcessed then return end
+    
     if input.KeyCode == _G.Settings.KEYCODE then
-        local killProcessActive = killProcess:GetAttribute("KillProcess")
-        killProcess:SetAttribute("KillProcess", not killProcessActive)
-        if killProcessActive then
-            killEntireProcess(true)
+        local isProcessActive = MiscData:GetAttribute("IsProcessActive")
+        MiscData:SetAttribute("IsProcessActive", not isProcessActive)
+        if not isProcessActive then
+            terminateProcess(true)
         else
-            startProcess()
+            initiateProcess()
         end
     end
 end
 
-if killProcess:GetAttribute("KillProcess") == nil then
-    killProcess:SetAttribute("KillProcess", false)
+if MiscData:GetAttribute("IsProcessActive") == nil then
+    MiscData:SetAttribute("IsProcessActive", false)
 end
 
-if killProcess:GetAttribute("KillProcess") == false then
-    startProcess()
+if MiscData:GetAttribute("IsProcessActive") == false then
+    initiateProcess()
 else
-    killEntireProcess(true)
+    terminateProcess(true)
 end
