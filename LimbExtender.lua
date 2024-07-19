@@ -76,7 +76,6 @@ local function modifyLimb(character)
     if mesh then
         mesh:Destroy()
     end
-
     
     if _G.Settings.USE_HIGHLIGHT then
         local highlight = Instance.new("Highlight", limb)
