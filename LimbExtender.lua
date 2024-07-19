@@ -1,24 +1,3 @@
-_G.Settings = {
-    KEYCODE = Enum.KeyCode.K,
-    
-    TARGET_LIMB = "Head",
-    LIMB_SIZE = 20,
-    LIMB_TRANSPARENCY = 0.5,
-    LIMB_CAN_COLLIDE = false,
-    LIMB_MASSLESS = true,
-
-    TEAM_CHECK = true,
-
-    USE_HIGHLIGHT = true,
-    DEPTH_MODE = Enum.HighlightDepthMode.AlwaysOnTop,
-    HIGHLIGHT_FILL_COLOR = Color3.fromRGB(255, 0, 0),
-    HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
-    HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
-    HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
-
-    RESTORE_ORIGINAL_LIMB_ON_DEATH = false
-}
-
 local defaultSettings = {
     KEYCODE = Enum.KeyCode.K,
     TARGET_LIMB = "Head",
