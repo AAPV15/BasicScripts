@@ -44,7 +44,7 @@ local function isPlayerAlive(character)
 end
 
 local function storeOriginalProperties(limb)
-    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
+    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or limb:FindFirstChildWhichIsA("Mesh")
     if not _G.MainInfo[limb] then
         _G.MainInfo[limb] = {
             Size = limb.Size,
