@@ -115,6 +115,7 @@ local function handleCharacter(character)
             local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
             if limb and newHealth <= 0 then
                 restoreOriginalProperties(limb)
+                _G.MainInfo[humanoid] = nil
             end
         end)
     end
