@@ -111,7 +111,6 @@ local function modifyLimb(character)
         highlight.DepthMode = _G.Settings.DEPTH_MODE
         highlight.Adornee = limb
         highlight.FillColor = _G.Settings.HIGHLIGHT_FILL_COLOR
-        
         highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
         highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
         highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
