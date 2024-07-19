@@ -121,24 +121,6 @@ local function connectTeamCheck(character)
     end
 end
 
-local function handleCharacter(character)
-    connectTeamCheck(character)
-end
-
-local function connectPlayerEvents(player)
-    onCharacterAdded(player)
-    if player.Character then
-        handleCharacter(player.Character)
-    end
-end
-
-local function disconnectPlayerEvents(player)
-    if _G.MainInfo[player] then
-        _G.MainInfo[player]:Disconnect()
-        _G.MainInfo[player] = nil
-    end
-end
-
 local function onCharacterAdded(player)
     if _G.MainInfo[player] then
         _G.MainInfo[player]:Disconnect()
@@ -147,11 +129,17 @@ local function onCharacterAdded(player)
 end
 
 local function onPlayerAdded(player)
-    connectPlayerEvents(player)
+    onCharacterAdded(player)
+    if player.Character then
+        connectTeamCheck(player.Character)
+    end
 end
 
 local function onPlayerRemoving(player)
-    disconnectPlayerEvents(player)
+    if _G.MainInfo[player] then
+        _G.MainInfo[player]:Disconnect()
+        _G.MainInfo[player] = nil
+    end
     local limb = player.Character and player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
     if limb then
         restoreOriginalProperties(limb)
@@ -161,7 +149,6 @@ end
 local function killEntireProcess(saveInput)
     for connectionName, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
-            if not saveInput and connectionName ~= "InputBegan" then
             connection:Disconnect()
         end
     end
@@ -174,6 +161,9 @@ local function killEntireProcess(saveInput)
         end
     end
     _G.MainInfo = {}
+    if saveInput then
+        _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
+    end
 end
 
 local function startProcess()
@@ -199,7 +189,7 @@ function onKeyPress(input, gameProcessedEvent)
     if newState then
         startProcess()
     else
-        killEntireProcess()
+        killEntireProcess(true)
     end
 end
 
@@ -210,5 +200,5 @@ end
 if killProcess:GetAttribute("KillProcess") == false then
     startProcess()
 else
-    killEntireProcess()
+    killEntireProcess(true)
 end
