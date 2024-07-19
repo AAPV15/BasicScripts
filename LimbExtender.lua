@@ -99,15 +99,20 @@ local function modifyLimb(character)
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
     limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
     limb.Massless = _G.Settings.LIMB_MASSLESS
-    limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+    while not limb.Size == Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) do
+        limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+        task.wait()
+    end
 
     if mesh then
         mesh:Destroy()
     end
 
     if _G.Settings.USE_HIGHLIGHT then
-        local highlight = Instance.new("Highlight")
-        highlight.Name = "LimbExtenderHighlight"
+        while not character[_G.Settings.TARGET_LIMB]:FindFirstChild("LimbExtenderHighlight") do
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "LimbExtenderHighlight"
+        end
         highlight.Enabled = true
         highlight.DepthMode = _G.Settings.DEPTH_MODE
         highlight.Adornee = limb
