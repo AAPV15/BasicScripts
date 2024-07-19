@@ -116,10 +116,14 @@ end
 local function connectTeamCheck(character)
     if _G.Settings.TEAM_CHECK then
         if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
-            coroutine.wrap(safeCall(handleLimbModification, character))()
+            coroutine.wrap(function()
+                safeCall(handleLimbModification, character)
+            end)()
         end
     else
-        coroutine.wrap(safeCall(handleLimbModification, character))()
+        coroutine.wrap(function()
+            safeCall(handleLimbModification, character)
+        end)()
     end
 end
 
@@ -178,7 +182,7 @@ local function startProcess()
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            safeCall(connectPlayerEvents, player)
+            safeCall(connectTeamCheck, player.Character)
         end
     end
 end
