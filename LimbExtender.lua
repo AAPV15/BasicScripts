@@ -126,7 +126,7 @@ local function modifyLimb(character)
 end
 
 local function handleCharacter(character)
-    print("SEe")
+    print("testic")
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
         local humanoid = character:WaitForChild("Humanoid")
         _G.MainInfo[humanoid] = humanoid.HealthChanged:Connect(function(newHealth)
