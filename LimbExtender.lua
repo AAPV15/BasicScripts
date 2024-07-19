@@ -103,7 +103,7 @@ local function modifyLimb(character)
         limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
         task.wait()
     end
-
+    print(limb.Size)
     if mesh then
         mesh:Destroy()
     end
@@ -113,6 +113,7 @@ local function modifyLimb(character)
         while not highlight do
             highlight = Instance.new("Highlight")
             highlight.Name = "LimbExtenderHighlight"
+            highlight.Parent = limb
             task.wait()
         end
         highlight.Enabled = true
@@ -122,7 +123,6 @@ local function modifyLimb(character)
         highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
         highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
         highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
-        highlight.Parent = limb
     end
 end
 
