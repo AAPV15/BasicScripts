@@ -74,7 +74,7 @@ local function modifyLimb(character)
     limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
 
     if _G.Settings.USE_HIGHLIGHT then
-        local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", limb)
+        local highlight = Instance.new("Highlight", limb)
         highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
         highlight.DepthMode = _G.Settings.DEPTH_MODE
@@ -89,9 +89,9 @@ end
 local function handleCharacter(character)
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
         local humanoid = character:WaitForChild("Humanoid")
-        _G.MainInfo[humanoid] = humanoid.Died:Connect(function()
+        _G.MainInfo[humanoid] = humanoid.HealthChanged:Connect(function(newHealth)
             local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
-            if limb then
+            if limb and newHealth <= 0 then
                 restoreOriginalProperties(limb)
             end
         end)
@@ -138,22 +138,30 @@ local function onPlayerRemoving(player)
     end
 end
 
-local function killEntireProcess()
+local function killEntireProcess(detectInput)
     for _, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
             connection:Disconnect()
         end
     end
-    _G.MainInfo = {}
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character then
             local limb = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
             if limb then
                 restoreOriginalProperties(limb)
             end
+            if killProcess:GetAttribute("PreviousLimb") then
+                local limb = player.Character:FindFirstChild(killProcess:GetAttribute("PreviousLimb"))
+                if limb then
+                    restoreOriginalProperties(limb)
+                end
+            end
         end
     end
-    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
+    _G.MainInfo = {}
+    if detectInput then 
+        _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
+    end
 end
 
 local function startProcess()
@@ -175,7 +183,7 @@ function onKeyPress(input, gameProcessedEvent)
         local killProcessActive = killProcess:GetAttribute("KillProcess")
         killProcess:SetAttribute("KillProcess", not killProcessActive)
         if killProcessActive then
-            killEntireProcess()
+            killEntireProcess(true)
         else
             startProcess()
         end
@@ -189,4 +197,5 @@ end
 if killProcess:GetAttribute("KillProcess") == false then
     startProcess()
 else
-    killEntireProcess()
+    killEntireProcess(true)
+end
