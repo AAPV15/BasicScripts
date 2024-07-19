@@ -99,7 +99,7 @@ local function modifyLimb(character)
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
     limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
     limb.Massless = _G.Settings.LIMB_MASSLESS
-    while not limb.Size == Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) do
+    while limb.Size ~= Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) do
         limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
         task.wait()
     end
