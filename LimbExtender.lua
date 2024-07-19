@@ -26,20 +26,12 @@ local LocalPlayer = Players.LocalPlayer
 local killProcess = LocalPlayer:FindFirstChild("KillProcess") or Instance.new("Configuration", LocalPlayer)
 killProcess.Name = "KillProcess"
 
-local function safeCall(func, ...)
-    local success, result = pcall(func, ...)
-    if not success then
-        warn("Error in function: " .. tostring(result))
-    end
-    return success, result
-end
-
 local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
         if humanoid and limb then
-            safeCall(ContentProvider.PreloadAsync, ContentProvider, {humanoid, limb})
+            ContentProvider:PreloadAsync({humanoid, limb})
             return true
         end
     end
@@ -68,62 +60,56 @@ local function restoreOriginalProperties(limb)
     end
     local highlight = limb:FindFirstChild("LimbExtenderHighlight")
     if highlight then
-        safeCall(highlight.Destroy, highlight)
+        highlight:Destroy()
     end
 end
 
 local function modifyLimb(character)
-    local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
-    if limb then
-        safeCall(storeOriginalProperties, limb)
+    local limb = character[_G.Settings.TARGET_LIMB]
+    storeOriginalProperties(limb)
 
-        limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
-        limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
-        limb.Massless = _G.Settings.LIMB_MASSLESS
-        limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+    limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
+    limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
+    limb.Massless = _G.Settings.LIMB_MASSLESS
+    limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
 
-        if _G.Settings.USE_HIGHLIGHT then
-            local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", limb)
-            highlight.Name = "LimbExtenderHighlight"
-            highlight.Enabled = true
-            highlight.DepthMode = _G.Settings.DEPTH_MODE
-            highlight.Adornee = limb
-            highlight.FillColor = _G.Settings.HIGHLIGHT_FILL_COLOR
-            highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
-            highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
-            highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
-        end
+    if _G.Settings.USE_HIGHLIGHT then
+        local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", limb)
+        highlight.Name = "LimbExtenderHighlight"
+        highlight.Enabled = true
+        highlight.DepthMode = _G.Settings.DEPTH_MODE
+        highlight.Adornee = limb
+        highlight.FillColor = _G.Settings.HIGHLIGHT_FILL_COLOR
+        highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
+        highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
+        highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
     end
 end
 
-local function handleLimbModification(character)
+local function handleCharacter(character)
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
         local humanoid = character:WaitForChild("Humanoid")
         _G.MainInfo[humanoid] = humanoid.Died:Connect(function()
             local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
             if limb then
-                safeCall(restoreOriginalProperties, limb)
+                restoreOriginalProperties(limb)
             end
         end)
     end
 
-    while not isPlayerAlive(character) do
-        task.wait()
+    local function checkAndModifyLimb()
+        while not isPlayerAlive(character) do
+            task.wait()
+        end
+        modifyLimb(character)
     end
-    safeCall(modifyLimb, character)
-end
 
-local function connectTeamCheck(character)
     if _G.Settings.TEAM_CHECK then
         if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
-            coroutine.wrap(function()
-                safeCall(handleLimbModification, character)
-            end)()
+            coroutine.wrap(checkAndModifyLimb)()
         end
     else
-        coroutine.wrap(function()
-            safeCall(handleLimbModification, character)
-        end)()
+        coroutine.wrap(checkAndModifyLimb)()
     end
 end
 
@@ -131,15 +117,13 @@ local function onCharacterAdded(player)
     if _G.MainInfo[player] then
         _G.MainInfo[player]:Disconnect()
     end
-    _G.MainInfo[player] = player.CharacterAdded:Connect(function(character)
-        safeCall(connectTeamCheck, character)
-    end)
+    _G.MainInfo[player] = player.CharacterAdded:Connect(handleCharacter)
 end
 
 local function onPlayerAdded(player)
     onCharacterAdded(player)
     if player.Character then
-        safeCall(connectTeamCheck, player.Character)
+        handleCharacter(player.Character)
     end
 end
 
@@ -150,28 +134,26 @@ local function onPlayerRemoving(player)
     end
     local limb = player.Character and player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
     if limb then
-        safeCall(restoreOriginalProperties, limb)
+        restoreOriginalProperties(limb)
     end
 end
 
-local function killEntireProcess(saveInput)
-    for connectionName, connection in pairs(_G.MainInfo) do
+local function killEntireProcess()
+    for _, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
-            safeCall(connection.Disconnect, connection)
+            connection:Disconnect()
         end
     end
+    _G.MainInfo = {}
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character then
             local limb = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
             if limb then
-                safeCall(restoreOriginalProperties, limb)
+                restoreOriginalProperties(limb)
             end
         end
     end
-    _G.MainInfo = {}
-    if saveInput then
-        _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
-    end
+    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
 end
 
 local function startProcess()
@@ -182,22 +164,21 @@ local function startProcess()
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            safeCall(connectTeamCheck, player.Character)
+            onPlayerAdded(player)
         end
     end
 end
 
 function onKeyPress(input, gameProcessedEvent)
-    if gameProcessedEvent or input.KeyCode ~= _G.Settings.KEYCODE then return end
-
-    local currentState = killProcess:GetAttribute("KillProcess")
-    local newState = not currentState
-    killProcess:SetAttribute("KillProcess", newState)
-
-    if newState then
-        safeCall(startProcess)
-    else
-        safeCall(killEntireProcess, true)
+    if gameProcessedEvent then return end
+    if input.KeyCode == _G.Settings.KEYCODE then
+        local killProcessActive = killProcess:GetAttribute("KillProcess")
+        killProcess:SetAttribute("KillProcess", not killProcessActive)
+        if killProcessActive then
+            killEntireProcess()
+        else
+            startProcess()
+        end
     end
 end
 
@@ -206,7 +187,6 @@ if killProcess:GetAttribute("KillProcess") == nil then
 end
 
 if killProcess:GetAttribute("KillProcess") == false then
-    safeCall(startProcess)
+    startProcess()
 else
-    safeCall(killEntireProcess, true)
-end
+    killEntireProcess()
