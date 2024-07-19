@@ -44,7 +44,7 @@ local function isPlayerAlive(character)
 end
 
 local function storeOriginalProperties(limb)
-    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or limb:FindFirstChildWhichIsA("Mesh")
+    local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or limb:FindFirstChildWhichIsA("MeshPart")
     if not _G.MainInfo[limb] then
         _G.MainInfo[limb] = {
             Size = limb.Size,
@@ -75,7 +75,7 @@ local function restoreOriginalProperties(limb)
             if typeof(mesh) == "SpecialMesh" then
                 mesh = Instance.new("SpecialMesh", limb)
             else
-                mesh = Instance.new("Mesh", limb)
+                mesh = Instance.new("MeshPart", limb)
             end
             mesh.MeshId = properties.Mesh.MeshId
             mesh.TextureId = properties.Mesh.TextureId
