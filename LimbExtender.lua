@@ -39,7 +39,7 @@ local function isPlayerAlive(character)
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
         if humanoid and limb then
-            ContentProvider:PreloadAsync({humanoid, limb})
+            safeCall(ContentProvider.PreloadAsync, ContentProvider, {humanoid, limb})
             return true
         end
     end
@@ -68,29 +68,31 @@ local function restoreOriginalProperties(limb)
     end
     local highlight = limb:FindFirstChild("LimbExtenderHighlight")
     if highlight then
-        highlight:Destroy()
+        safeCall(highlight.Destroy, highlight)
     end
 end
 
 local function modifyLimb(character)
-    local limb = character[_G.Settings.TARGET_LIMB]
-    storeOriginalProperties(limb)
+    local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
+    if limb then
+        safeCall(storeOriginalProperties, limb)
 
-    limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
-    limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
-    limb.Massless = _G.Settings.LIMB_MASSLESS
-    limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+        limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
+        limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
+        limb.Massless = _G.Settings.LIMB_MASSLESS
+        limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
 
-    if _G.Settings.USE_HIGHLIGHT then
-        local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", limb)
-        highlight.Name = "LimbExtenderHighlight"
-        highlight.Enabled = true
-        highlight.DepthMode = _G.Settings.DEPTH_MODE
-        highlight.Adornee = limb
-        highlight.FillColor = _G.Settings.HIGHLIGHT_FILL_COLOR
-        highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
-        highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
-        highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
+        if _G.Settings.USE_HIGHLIGHT then
+            local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight", limb)
+            highlight.Name = "LimbExtenderHighlight"
+            highlight.Enabled = true
+            highlight.DepthMode = _G.Settings.DEPTH_MODE
+            highlight.Adornee = limb
+            highlight.FillColor = _G.Settings.HIGHLIGHT_FILL_COLOR
+            highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
+            highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
+            highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
+        end
     end
 end
 
@@ -100,7 +102,7 @@ local function handleLimbModification(character)
         _G.MainInfo[humanoid] = humanoid.Died:Connect(function()
             local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
             if limb then
-                restoreOriginalProperties(limb)
+                safeCall(restoreOriginalProperties, limb)
             end
         end)
     end
@@ -108,16 +110,16 @@ local function handleLimbModification(character)
     while not isPlayerAlive(character) do
         task.wait()
     end
-    modifyLimb(character)
+    safeCall(modifyLimb, character)
 end
 
 local function connectTeamCheck(character)
     if _G.Settings.TEAM_CHECK then
         if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
-            coroutine.wrap(handleLimbModification)(character)
+            coroutine.wrap(safeCall(handleLimbModification, character))()
         end
     else
-        coroutine.wrap(handleLimbModification)(character)
+        coroutine.wrap(safeCall(handleLimbModification, character))()
     end
 end
 
@@ -125,13 +127,15 @@ local function onCharacterAdded(player)
     if _G.MainInfo[player] then
         _G.MainInfo[player]:Disconnect()
     end
-    _G.MainInfo[player] = player.CharacterAdded:Connect(handleCharacter)
+    _G.MainInfo[player] = player.CharacterAdded:Connect(function(character)
+        safeCall(connectTeamCheck, character)
+    end)
 end
 
 local function onPlayerAdded(player)
     onCharacterAdded(player)
     if player.Character then
-        connectTeamCheck(player.Character)
+        safeCall(connectTeamCheck, player.Character)
     end
 end
 
@@ -142,21 +146,21 @@ local function onPlayerRemoving(player)
     end
     local limb = player.Character and player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
     if limb then
-        restoreOriginalProperties(limb)
+        safeCall(restoreOriginalProperties, limb)
     end
 end
 
 local function killEntireProcess(saveInput)
     for connectionName, connection in pairs(_G.MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
-            connection:Disconnect()
+            safeCall(connection.Disconnect, connection)
         end
     end
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character then
             local limb = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
             if limb then
-                restoreOriginalProperties(limb)
+                safeCall(restoreOriginalProperties, limb)
             end
         end
     end
@@ -174,7 +178,7 @@ local function startProcess()
     _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(onKeyPress)
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
-            connectPlayerEvents(player)
+            safeCall(connectPlayerEvents, player)
         end
     end
 end
@@ -187,9 +191,9 @@ function onKeyPress(input, gameProcessedEvent)
     killProcess:SetAttribute("KillProcess", newState)
 
     if newState then
-        startProcess()
+        safeCall(startProcess)
     else
-        killEntireProcess(true)
+        safeCall(killEntireProcess, true)
     end
 end
 
@@ -198,7 +202,7 @@ if killProcess:GetAttribute("KillProcess") == nil then
 end
 
 if killProcess:GetAttribute("KillProcess") == false then
-    startProcess()
+    safeCall(startProcess)
 else
-    killEntireProcess(true)
+    safeCall(killEntireProcess, true)
 end
