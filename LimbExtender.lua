@@ -188,10 +188,10 @@ function handleKeyPress(input, isGameProcessed)
     if input.KeyCode == _G.Settings.KEYCODE then
         local isProcessActive = MiscData:GetAttribute("IsProcessActive")
         MiscData:SetAttribute("IsProcessActive", not isProcessActive)
-        if not isProcessActive then
-            terminateProcess(true)
-        else
+        if isProcessActive then
             initiateProcess()
+        else
+            terminateProcess(true)
         end
     end
 end
