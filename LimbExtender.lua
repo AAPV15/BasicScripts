@@ -72,6 +72,12 @@ local function modifyLimb(character)
     limb.Massless = _G.Settings.LIMB_MASSLESS
     limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
 
+    local mesh = character:FindFirstChildWhichIsA("SpecialMesh")
+    if character:FindFirstChildWhichIsA("SpecialMesh") then
+        mesh:Destroy()
+    end
+
+    
     if _G.Settings.USE_HIGHLIGHT then
         local highlight = Instance.new("Highlight", limb)
         highlight.Name = "LimbExtenderHighlight"
