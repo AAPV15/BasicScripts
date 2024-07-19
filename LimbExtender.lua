@@ -71,7 +71,12 @@ local function restoreOriginalProperties(limb)
 
         -- Restore the SpecialMesh if it was saved
         if properties.Mesh then
-            local mesh = Instance.new("SpecialMesh", limb)
+            local mesh = nil
+            if typeof(mesh) == "SpecialMesh" then
+                mesh = Instance.new("SpecialMesh", limb)
+            else
+                mesh = Instance.new("Mesh", limb)
+            end
             mesh.MeshId = properties.Mesh.MeshId
             mesh.TextureId = properties.Mesh.TextureId
             mesh.Scale = properties.Mesh.Scale
