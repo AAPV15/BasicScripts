@@ -52,10 +52,11 @@ local function storeOriginalProperties(limb)
             CanCollide = limb.CanCollide,
             Massless = limb.Massless,
             Mesh = mesh and {
-                MeshId = mesh.MeshId,
-                TextureId = mesh.TextureId,
-                Scale = mesh.Scale,
-                Offset = mesh.Offset
+                ClassName = mesh.ClassName,
+                MeshId = mesh:IsA("SpecialMesh") and mesh.MeshId or "",
+                TextureId = mesh:IsA("SpecialMesh") and mesh.TextureId or "",
+                Scale = mesh:IsA("SpecialMesh") and mesh.Scale or Vector3.new(),
+                Offset = mesh:IsA("SpecialMesh") and mesh.Offset or Vector3.new()
             } or nil
         }
     end
@@ -69,18 +70,21 @@ local function restoreOriginalProperties(limb)
         limb.CanCollide = properties.CanCollide
         limb.Massless = properties.Massless
 
-        -- Restore the SpecialMesh if it was saved
         if properties.Mesh then
-            local mesh = nil
-            if typeof(mesh) == "SpecialMesh" then
-                mesh = Instance.new("SpecialMesh", limb)
-                mesh.MeshId = properties.Mesh.MeshId
-            else
-                mesh = Instance.new("MeshPart", limb)
+            local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or limb:FindFirstChildWhichIsA("MeshPart")
+            if not mesh then
+                if properties.Mesh.ClassName == "SpecialMesh" then
+                    mesh = Instance.new("SpecialMesh", limb)
+                else
+                    mesh = Instance.new("MeshPart", limb)
+                end
             end
-            mesh.TextureId = properties.Mesh.TextureId
-            mesh.Scale = properties.Mesh.Scale
-            mesh.Offset = properties.Mesh.Offset
+            if properties.Mesh.ClassName == "SpecialMesh" then
+                mesh.MeshId = properties.Mesh.MeshId
+                mesh.TextureId = properties.Mesh.TextureId
+                mesh.Scale = properties.Mesh.Scale
+                mesh.Offset = properties.Mesh.Offset
+            end
         end
 
         _G.MainInfo[limb] = nil
