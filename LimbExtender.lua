@@ -74,10 +74,10 @@ local function restoreOriginalProperties(limb)
             local mesh = nil
             if typeof(mesh) == "SpecialMesh" then
                 mesh = Instance.new("SpecialMesh", limb)
+                mesh.MeshId = properties.Mesh.MeshId
             else
                 mesh = Instance.new("MeshPart", limb)
             end
-            mesh.MeshId = properties.Mesh.MeshId
             mesh.TextureId = properties.Mesh.TextureId
             mesh.Scale = properties.Mesh.Scale
             mesh.Offset = properties.Mesh.Offset
