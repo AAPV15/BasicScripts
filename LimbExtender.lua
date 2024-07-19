@@ -1,3 +1,24 @@
+_G.Settings = {
+    KEYCODE = Enum.KeyCode.K,
+    
+    TARGET_LIMB = "Head",
+    LIMB_SIZE = 20,
+    LIMB_TRANSPARENCY = 0.5,
+    LIMB_CAN_COLLIDE = false,
+    LIMB_MASSLESS = true,
+
+    TEAM_CHECK = true,
+
+    USE_HIGHLIGHT = true,
+    DEPTH_MODE = Enum.HighlightDepthMode.AlwaysOnTop,
+    HIGHLIGHT_FILL_COLOR = Color3.fromRGB(255, 0, 0),
+    HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
+    HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
+    HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
+
+    RESTORE_ORIGINAL_LIMB_ON_DEATH = false
+}
+
 local defaultSettings = {
     KEYCODE = Enum.KeyCode.K,
     TARGET_LIMB = "Head",
@@ -98,23 +119,15 @@ local function modifyLimb(character)
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
     limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
     limb.Massless = _G.Settings.LIMB_MASSLESS
-    while limb.Size ~= Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) do
-        limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
-        task.wait()
-    end
-    print(limb.Size)
+    limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+
     if mesh then
         mesh:Destroy()
     end
 
     if _G.Settings.USE_HIGHLIGHT then
-        local highlight = character[_G.Settings.TARGET_LIMB]:FindFirstChild("LimbExtenderHighlight")
-        while not highlight do
-            highlight = Instance.new("Highlight")
-            highlight.Name = "LimbExtenderHighlight"
-            highlight.Parent = limb
-            task.wait()
-        end
+        local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight"))
+        highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
         highlight.DepthMode = _G.Settings.DEPTH_MODE
         highlight.Adornee = limb
@@ -122,11 +135,16 @@ local function modifyLimb(character)
         highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
         highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
         highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
+        highlight.Parent = limb
+
+        highlight.AncestryChanged:Once(function()
+            highlight:Destroy()
+            modifyLimb(character)
+        end)
     end
 end
 
 local function handleCharacter(character)
-    print("testic")
     if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
         local humanoid = character:WaitForChild("Humanoid")
         _G.MainInfo[humanoid] = humanoid.HealthChanged:Connect(function(newHealth)
@@ -158,7 +176,9 @@ local function onPlayerAdded(player)
     if _G.MainInfo[player] then
         _G.MainInfo[player]:Disconnect()
     end
-    _G.MainInfo[player] = player.CharacterAppearanceLoaded:Connect(handleCharacter)
+    _G.MainInfo[player] = player.CharacterAdded:Connect(function(character)
+        handleCharacter(character)
+    end)
     if player.Character then
         handleCharacter(player.Character)
     end
