@@ -32,6 +32,7 @@ local function isPlayerAlive(character)
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
         if humanoid and limb then
+            ContentProvider:PreloadAsync({humanoid, limb})
             return true
         end
     end
@@ -92,7 +93,7 @@ local function restoreOriginalProperties(limb)
 end
 
 local function modifyLimb(character)
-    local limb = character[_G.Settings.TARGET_LIMB]
+    local limb = character:WaitForChild(_G.Settings.TARGET_LIMB)
     local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
     local currentTick = tick()
     storeOriginalProperties(limb)
