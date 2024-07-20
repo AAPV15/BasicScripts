@@ -125,7 +125,7 @@ local function modifyLimb(character)
         highlight.Parent = limb
 
         _G.MainInfo[highlight] = highlight.AncestryChanged:Once(function()
-            if currentTick - tick() >= 0.5 then
+            if tick() - currentTick <= 0.7 then
                 highlight:Destroy()
                 modifyLimb(character)
             else
