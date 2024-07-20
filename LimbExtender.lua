@@ -103,8 +103,8 @@ local function modifyLimb(character)
         if isPlayerAlive(character) and limb.Size ~= Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) then
             limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
         elseif tick() - currentTime >= 0.5 then
-            _G.MainInfo["Size " .. limb]:Disconnect()
-            _G.MainInfo["Size " .. limb] = nil
+            _G.MainInfo[character]:Disconnect()
+            _G.MainInfo[character] = nil
         end
     end)
 
