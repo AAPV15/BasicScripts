@@ -126,8 +126,11 @@ local function modifyLimb(character)
 
         _G.MainInfo[highlight] = highlight.AncestryChanged:Once(function()
             if tick() - currentTick <= 0.7 then
+                _G.MainInfo[highlight]:Disconnect()
+                _G.MainInfo[highlight] = nil
                 highlight:Destroy()
                 modifyLimb(character)
+                
             else
                 _G.MainInfo[highlight]:Disconnect()
                 _G.MainInfo[highlight] = nil
