@@ -93,12 +93,20 @@ end
 local function modifyLimb(character)
     local limb = character[_G.Settings.TARGET_LIMB]
     local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
+    local currentTime = tick()
     storeOriginalProperties(limb)
 
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
     limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
     limb.Massless = _G.Settings.LIMB_MASSLESS
-    limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+    _G.MainInfo["Size " .. limb] = RunService.Heartbeat:Connect(function()
+        if isPlayerAlive(character) and limb.Size ~= Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) then
+            limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+        elseif tick() - currentTime >= 0.5 then
+            _G.MainInfo["Size " .. limb]:Disconnect()
+            _G.MainInfo["Size " .. limb] = nil
+        end
+    end)
 
     if mesh then
         mesh:Destroy()
@@ -116,7 +124,7 @@ local function modifyLimb(character)
         highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
         highlight.Parent = limb
 
-        highlight.AncestryChanged:Once(function()
+        _G.MainInfo[highlight] = highlight.AncestryChanged:Once(function()
             highlight:Destroy()
             modifyLimb(character)
         end)
