@@ -20,7 +20,6 @@ _G.MainInfo = _G.MainInfo or {}
 
 local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
@@ -101,14 +100,7 @@ local function modifyLimb(character)
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
     limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
     limb.Massless = _G.Settings.LIMB_MASSLESS
-    _G.MainInfo[character] = RunService.Heartbeat:Connect(function()
-        if isPlayerAlive(character) and limb.Size ~= Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) then
-            limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
-        elseif tick() - currentTick >= 2 then
-            _G.MainInfo[character]:Disconnect()
-            _G.MainInfo[character] = nil
-        end
-    end)
+    limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
 
     if mesh then
         mesh:Destroy()
@@ -127,8 +119,13 @@ local function modifyLimb(character)
         highlight.Parent = limb
 
         _G.MainInfo[highlight] = highlight.AncestryChanged:Once(function()
-            highlight:Destroy()
-            modifyLimb(character)
+            if currentTick - tick() >= 0.5 then
+                highlight:Destroy()
+                modifyLimb(character)
+            else
+                _G.MainInfo[highlight]:Disconnect()
+                _G.MainInfo[highlight] = nil
+            end
         end)
     end
 end
