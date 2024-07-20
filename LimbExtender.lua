@@ -93,7 +93,7 @@ end
 local function modifyLimb(character)
     local limb = character[_G.Settings.TARGET_LIMB]
     local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
-    local currentTime = tick()
+    local currentTick = tick()
     storeOriginalProperties(limb)
 
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
@@ -102,7 +102,7 @@ local function modifyLimb(character)
     _G.MainInfo[character] = RunService.Heartbeat:Connect(function()
         if isPlayerAlive(character) and limb.Size ~= Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) then
             limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
-        elseif tick() - currentTime >= 0.7 then
+        elseif tick() - currentTick >= 0.7 then
             _G.MainInfo[character]:Disconnect()
             _G.MainInfo[character] = nil
         end
