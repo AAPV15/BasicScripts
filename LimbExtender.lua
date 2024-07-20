@@ -99,7 +99,7 @@ local function modifyLimb(character)
     limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
     limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
     limb.Massless = _G.Settings.LIMB_MASSLESS
-    _G.MainInfo["Size " .. limb] = RunService.Heartbeat:Connect(function()
+    _G.MainInfo[character] = RunService.Heartbeat:Connect(function()
         if isPlayerAlive(character) and limb.Size ~= Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE) then
             limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
         elseif tick() - currentTime >= 0.5 then
