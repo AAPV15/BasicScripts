@@ -22,7 +22,6 @@ local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-
 local LocalPlayer = Players.LocalPlayer
 
 local MiscData = LocalPlayer:FindFirstChild("MiscData") or Instance.new("Configuration", LocalPlayer)
