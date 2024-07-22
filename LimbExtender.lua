@@ -129,10 +129,8 @@ local function modifyLimb(character)
                 _G.MainInfo[highlight]:Disconnect()
                 _G.MainInfo[highlight] = nil
                 highlight:Destroy()
-                modifyLimb(character)
-                
+                modifyLimb(character)     
             else
-                _G.MainInfo[highlight]:Disconnect()
                 _G.MainInfo[highlight] = nil
             end
         end)
