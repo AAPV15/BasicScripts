@@ -15,8 +15,8 @@ local defaultSettings = {
     RESTORE_ORIGINAL_LIMB_ON_DEATH = false
 }
 
-_G.Settings = setmetatable(_G.Settings or {}, {__index = defaultSettings})
-_G.MainInfo = _G.MainInfo or {}
+getgenv().Settings = setmetatable(getgenv().Settings or {}, {__index = defaultSettings})
+getgenv().MainInfo = getgenv().MainInfo or {}
 
 local ContentProvider = game:GetService("ContentProvider")
 local Players = game:GetService("Players")
@@ -30,7 +30,7 @@ MiscData.Name = "MiscData"
 local function isPlayerAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
-        local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
+        local limb = character:FindFirstChild(getgenv().Settings.TARGET_LIMB)
         if humanoid and limb then
             local assets = {}
             table.insert(assets, limb)
@@ -46,8 +46,8 @@ end
 
 local function storeOriginalProperties(limb)
     local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or limb:FindFirstChildWhichIsA("MeshPart")
-    if not _G.MainInfo[limb] then
-        _G.MainInfo[limb] = {
+    if not getgenv().MainInfo[limb] then
+        getgenv().MainInfo[limb] = {
             Size = limb.Size,
             Transparency = limb.Transparency,
             CanCollide = limb.CanCollide,
@@ -64,7 +64,7 @@ local function storeOriginalProperties(limb)
 end
 
 local function restoreOriginalProperties(limb)
-    local properties = _G.MainInfo[limb]
+    local properties = getgenv().MainInfo[limb]
     if properties then
         limb.Size = properties.Size
         limb.Transparency = properties.Transparency
@@ -88,7 +88,7 @@ local function restoreOriginalProperties(limb)
             end
         end
 
-        _G.MainInfo[limb] = nil
+        getgenv().MainInfo[limb] = nil
     end
 
     local highlight = limb:FindFirstChild("LimbExtenderHighlight")
@@ -98,53 +98,53 @@ local function restoreOriginalProperties(limb)
 end
 
 local function modifyLimb(character)
-    local limb = character:WaitForChild(_G.Settings.TARGET_LIMB)
+    local limb = character:WaitForChild(getgenv().Settings.TARGET_LIMB)
     local mesh = limb:FindFirstChildWhichIsA("SpecialMesh")
     local currentTick = tick()
     storeOriginalProperties(limb)
 
-    limb.Transparency = _G.Settings.LIMB_TRANSPARENCY
-    limb.CanCollide = _G.Settings.LIMB_CAN_COLLIDE
-    limb.Massless = _G.Settings.LIMB_MASSLESS
-    limb.Size = Vector3.new(_G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE, _G.Settings.LIMB_SIZE)
+    limb.Transparency = getgenv().Settings.LIMB_TRANSPARENCY
+    limb.CanCollide = getgenv().Settings.LIMB_CAN_COLLIDE
+    limb.Massless = getgenv().Settings.LIMB_MASSLESS
+    limb.Size = Vector3.new(getgenv().Settings.LIMB_SIZE, getgenv().Settings.LIMB_SIZE, getgenv().Settings.LIMB_SIZE)
 
     if mesh then
         mesh:Destroy()
     end
 
-    if _G.Settings.USE_HIGHLIGHT then
+    if getgenv().Settings.USE_HIGHLIGHT then
         local highlight = limb:FindFirstChild("LimbExtenderHighlight") or Instance.new("Highlight")
         highlight.Name = "LimbExtenderHighlight"
         highlight.Enabled = true
-        highlight.DepthMode = _G.Settings.DEPTH_MODE
+        highlight.DepthMode = getgenv().Settings.DEPTH_MODE
         highlight.Adornee = limb
-        highlight.FillColor = _G.Settings.HIGHLIGHT_FILL_COLOR
-        highlight.FillTransparency = _G.Settings.HIGHLIGHT_FILL_TRANSPARENCY
-        highlight.OutlineColor = _G.Settings.HIGHLIGHT_OUTLINE_COLOR
-        highlight.OutlineTransparency = _G.Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
+        highlight.FillColor = getgenv().Settings.HIGHLIGHT_FILL_COLOR
+        highlight.FillTransparency = getgenv().Settings.HIGHLIGHT_FILL_TRANSPARENCY
+        highlight.OutlineColor = getgenv().Settings.HIGHLIGHT_OUTLINE_COLOR
+        highlight.OutlineTransparency = getgenv().Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
         highlight.Parent = limb
 
-        _G.MainInfo[highlight] = highlight.AncestryChanged:Once(function()
+        getgenv().MainInfo[highlight] = highlight.AncestryChanged:Once(function()
             if tick() - currentTick <= 0.7 then
-                _G.MainInfo[highlight]:Disconnect()
-                _G.MainInfo[highlight] = nil
+                getgenv().MainInfo[highlight]:Disconnect()
+                getgenv().MainInfo[highlight] = nil
                 highlight:Destroy()
                 modifyLimb(character)     
             else
-                _G.MainInfo[highlight] = nil
+                getgenv().MainInfo[highlight] = nil
             end
         end)
     end
 end
 
 local function handleCharacter(character)
-    if _G.Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
+    if getgenv().Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
         local humanoid = character:WaitForChild("Humanoid")
-        _G.MainInfo[humanoid] = humanoid.HealthChanged:Connect(function(newHealth)
-            local limb = character:FindFirstChild(_G.Settings.TARGET_LIMB)
+        getgenv().MainInfo[humanoid] = humanoid.HealthChanged:Connect(function(newHealth)
+            local limb = character:FindFirstChild(getgenv().Settings.TARGET_LIMB)
             if limb and newHealth <= 0 then
                 restoreOriginalProperties(limb)
-                _G.MainInfo[humanoid] = nil
+                getgenv().MainInfo[humanoid] = nil
             end
         end)
     end
@@ -156,7 +156,7 @@ local function handleCharacter(character)
         modifyLimb(character)
     end
 
-    if _G.Settings.TEAM_CHECK then
+    if getgenv().Settings.TEAM_CHECK then
         if LocalPlayer.Team == nil or Players:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team then
             coroutine.wrap(checkAndModifyLimb)()
         end
@@ -166,10 +166,10 @@ local function handleCharacter(character)
 end
 
 local function onPlayerAdded(player)
-    if _G.MainInfo[player] then
-        _G.MainInfo[player]:Disconnect()
+    if getgenv().MainInfo[player] then
+        getgenv().MainInfo[player]:Disconnect()
     end
-    _G.MainInfo[player] = player.CharacterAdded:Connect(function(character)
+    getgenv().MainInfo[player] = player.CharacterAdded:Connect(function(character)
         handleCharacter(character)
     end)
     if player.Character then
@@ -178,25 +178,25 @@ local function onPlayerAdded(player)
 end
 
 local function onPlayerRemoving(player)
-    if _G.MainInfo[player] then
-        _G.MainInfo[player]:Disconnect()
-        _G.MainInfo[player] = nil
+    if getgenv().MainInfo[player] then
+        getgenv().MainInfo[player]:Disconnect()
+        getgenv().MainInfo[player] = nil
     end
-    local limb = player.Character and player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
+    local limb = player.Character and player.Character:FindFirstChild(getgenv().Settings.TARGET_LIMB)
     if limb then
         restoreOriginalProperties(limb)
     end
 end
 
 local function terminateProcess(detectInput)
-    for _, connection in pairs(_G.MainInfo) do
+    for _, connection in pairs(getgenv().MainInfo) do
         if typeof(connection) == "RBXScriptConnection" then
             connection:Disconnect()
         end
     end
     for _, player in pairs(Players:GetPlayers()) do
         if player.Character then
-            local limb = player.Character:FindFirstChild(_G.Settings.TARGET_LIMB)
+            local limb = player.Character:FindFirstChild(getgenv().Settings.TARGET_LIMB)
             if limb then
                 restoreOriginalProperties(limb)
             end
@@ -208,18 +208,18 @@ local function terminateProcess(detectInput)
             end
         end
     end
-    _G.MainInfo = {}
+    getgenv().MainInfo = {}
     if detectInput then 
-        _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(handleKeyPress)
+        getgenv().MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(handleKeyPress)
     end
 end
 
 local function initiateProcess()
     terminateProcess()
-    MiscData:SetAttribute("PreviousLimb", _G.Settings.TARGET_LIMB)
-    _G.MainInfo["PlayerAdded"] = Players.PlayerAdded:Connect(onPlayerAdded)
-    _G.MainInfo["PlayerRemoving"] = Players.PlayerRemoving:Connect(onPlayerRemoving)
-    _G.MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(handleKeyPress)
+    MiscData:SetAttribute("PreviousLimb", getgenv().Settings.TARGET_LIMB)
+    getgenv().MainInfo["PlayerAdded"] = Players.PlayerAdded:Connect(onPlayerAdded)
+    getgenv().MainInfo["PlayerRemoving"] = Players.PlayerRemoving:Connect(onPlayerRemoving)
+    getgenv().MainInfo["InputBegan"] = UserInputService.InputBegan:Connect(handleKeyPress)
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer then
             onPlayerAdded(player)
@@ -230,7 +230,7 @@ end
 function handleKeyPress(input, isGameProcessed)
     if isGameProcessed then return end
     
-    if input.KeyCode == _G.Settings.KEYCODE then
+    if input.KeyCode == getgenv().Settings.KEYCODE then
         local isProcessActive = MiscData:GetAttribute("IsProcessActive")
         MiscData:SetAttribute("IsProcessActive", not isProcessActive)
         if isProcessActive then
