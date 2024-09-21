@@ -8,10 +8,9 @@ local defaultSettings = {
     LIMB_SIZE = 20,
     LIMB_TRANSPARENCY = 0.5,
     LIMB_CAN_COLLIDE = false,
-    LIMB_MASSLESS = true,
     TEAM_CHECK = false,
     USE_HIGHLIGHT = true,
-    DEPTH_MODE = Enum.HighlightDepthMode.AlwaysOnTop,
+    DEPTH_MODE = 1, -- 1 will display through walls, 2 will be occluded through walls
     HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
     HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
     HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
@@ -22,6 +21,8 @@ local defaultSettings = {
 getgenv().Settings = setmetatable(getgenv().Settings or {}, {__index = defaultSettings})
 getgenv().GlobalData = getgenv().GlobalData or {}
 
+local Settings = getgenv().Settings
+
 local ContentProvider = game:GetService("ContentProvider")
 local PlayersService = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
@@ -30,7 +31,7 @@ local LocalPlayer = PlayersService.LocalPlayer
 local function isCharacterAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
-        local limb = character:FindFirstChild(getgenv().Settings.TARGET_LIMB)
+        local limb = character:FindFirstChild(Settings.TARGET_LIMB)
         if humanoid and limb then
             local assets = {}
             table.insert(assets, limb)
@@ -51,7 +52,6 @@ local function saveOriginalLimbProperties(limb)
         Size = limb.Size,
         Transparency = limb.Transparency,
         CanCollide = limb.CanCollide,
-        Massless = limb.Massless,
         Mesh = meshPart and {
             ClassName = meshPart.ClassName,
             MeshId = meshPart:IsA("SpecialMesh") and meshPart.MeshId or "",
@@ -69,7 +69,6 @@ local function restoreLimbProperties(limb)
     limb.Size = storedProperties.Size
     limb.Transparency = storedProperties.Transparency
     limb.CanCollide = storedProperties.CanCollide
-    limb.Massless = storedProperties.Massless
 
     if storedProperties.Mesh then
         local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or Instance.new(storedProperties.Mesh.ClassName, limb)
@@ -89,11 +88,15 @@ end
 local function applyLimbHighlight(limb, currentTick)
     local highlightInstance = limb:FindFirstChildWhichIsA("Highlight") or Instance.new("Highlight", limb)
     highlightInstance.Name = "LimbHighlight"
-    highlightInstance.DepthMode = getgenv().Settings.DEPTH_MODE
-    highlightInstance.FillColor = getgenv().Settings.HIGHLIGHT_FILL_COLOR
-    highlightInstance.FillTransparency = getgenv().Settings.HIGHLIGHT_FILL_TRANSPARENCY
-    highlightInstance.OutlineColor = getgenv().Settings.HIGHLIGHT_OUTLINE_COLOR
-    highlightInstance.OutlineTransparency = getgenv().Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
+    if Settings.DEPTH_MODE == 1 then
+        highlightInstance.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    else
+        highlightInstance.DepthMode = Enum.HighlightDepthMode.Occluded
+    end
+    highlightInstance.FillColor = Settings.HIGHLIGHT_FILL_COLOR
+    highlightInstance.FillTransparency = Settings.HIGHLIGHT_FILL_TRANSPARENCY
+    highlightInstance.OutlineColor = Settings.HIGHLIGHT_OUTLINE_COLOR
+    highlightInstance.OutlineTransparency = Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
 
     getgenv().GlobalData[highlightInstance] = highlightInstance.AncestryChanged:Once(function()
         if tick() - currentTick <= 0.7 then
@@ -106,18 +109,17 @@ local function applyLimbHighlight(limb, currentTick)
 end
 
 local function modifyTargetLimb(character)
-    local limb = character:WaitForChild(getgenv().Settings.TARGET_LIMB)
+    local limb = character:WaitForChild(Settings.TARGET_LIMB)
     saveOriginalLimbProperties(limb)
 
-    limb.Transparency = getgenv().Settings.LIMB_TRANSPARENCY
-    limb.CanCollide = getgenv().Settings.LIMB_CAN_COLLIDE
-    limb.Massless = getgenv().Settings.LIMB_MASSLESS
-    limb.Size = Vector3.new(getgenv().Settings.LIMB_SIZE, getgenv().Settings.LIMB_SIZE, getgenv().Settings.LIMB_SIZE)
+    limb.Transparency = Settings.LIMB_TRANSPARENCY
+    limb.CanCollide = Settings.LIMB_CAN_COLLIDE
+    limb.Size = Vector3.new(Settings.LIMB_SIZE, Settings.LIMB_SIZE, Settings.LIMB_SIZE)
 
     local meshPart = limb:FindFirstChildWhichIsA("SpecialMesh")
     if meshPart then meshPart:Destroy() end
 
-    if getgenv().Settings.USE_HIGHLIGHT then
+    if Settings.USE_HIGHLIGHT then
         applyLimbHighlight(limb, tick())
     end
 end
@@ -128,17 +130,17 @@ local function processCharacterLimb(character)
         modifyTargetLimb(character)
     end
 
-    if getgenv().Settings.TEAM_CHECK and (LocalPlayer.Team == nil or PlayersService:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team) then
+    if Settings.TEAM_CHECK and (LocalPlayer.Team == nil or PlayersService:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team) then
         coroutine.wrap(modifyIfCharacterAlive)()
-    elseif not getgenv().Settings.TEAM_CHECK then
+    elseif not Settings.TEAM_CHECK then
         coroutine.wrap(modifyIfCharacterAlive)()
     end
 
-    if getgenv().Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
+    if Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
         local humanoid = character:WaitForChild("Humanoid")
         getgenv().GlobalData[humanoid] = humanoid.HealthChanged:Connect(function(health)
             if health <= 0 then
-                restoreLimbProperties(character:FindFirstChild(getgenv().Settings.TARGET_LIMB))
+                restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
             end
         end)
     end
@@ -151,7 +153,7 @@ local function onPlayerCharacterAdded(player)
     end)
 
     player.CharacterRemoving:Connect(function()
-        restoreLimbProperties(player.Character:FindFirstChild(getgenv().Settings.TARGET_LIMB or player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName)))
+        restoreLimbProperties(player.Character:FindFirstChild(Settings.TARGET_LIMB or player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName)))
     end)
 
     if player.Character then
@@ -161,7 +163,7 @@ end
 
 local function onPlayerRemoved(player)
     if player.Character then
-        restoreLimbProperties(player.Character:FindFirstChild(getgenv().Settings.TARGET_LIMB))
+        restoreLimbProperties(player.Character:FindFirstChild(Settings.TARGET_LIMB))
     end
     if getgenv().GlobalData[player] then
         getgenv().GlobalData[player]:Disconnect()
@@ -184,7 +186,7 @@ local function endProcess(specialProcess)
                     restoreLimbProperties(limb)
                 end
             end
-            local limb = player.Character:FindFirstChild(getgenv().Settings.TARGET_LIMB)
+            local limb = player.Character:FindFirstChild(Settings.TARGET_LIMB)
             if limb then
                 restoreLimbProperties(limb)
             end
@@ -202,7 +204,7 @@ end
 local function startProcess()
     endProcess()
     getgenv().GlobalData.IsProcessActive = true
-    getgenv().GlobalData.LastLimbName = getgenv().Settings.TARGET_LIMB
+    getgenv().GlobalData.LastLimbName = Settings.TARGET_LIMB
     getgenv().GlobalData.InputBeganConnection = UserInputService.InputBegan:Connect(handleKeyInput)
     getgenv().GlobalData.PlayerAddedConnection = PlayersService.PlayerAdded:Connect(onPlayerCharacterAdded)
     getgenv().GlobalData.PlayerRemovingConnection = PlayersService.PlayerRemoving:Connect(onPlayerRemoved)
@@ -215,7 +217,7 @@ local function startProcess()
 end
 
 function handleKeyInput(input, isProcessed)
-    if isProcessed or input.KeyCode ~= getgenv().Settings.KEYCODE then return end
+    if isProcessed or input.KeyCode ~= Settings.KEYCODE then return end
 
     getgenv().GlobalData.IsProcessActive = not getgenv().GlobalData.IsProcessActive
     print(getgenv().GlobalData.IsProcessActive)
