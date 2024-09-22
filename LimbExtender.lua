@@ -4,7 +4,7 @@ end
 
 local defaultSettings = {
     KEYCODE = Enum.KeyCode.K,
-    TARGET_LIMB = "Head",
+    TARGET_LIMB = "True",
     LIMB_SIZE = 20,
     LIMB_TRANSPARENCY = 0.5,
     LIMB_CAN_COLLIDE = false,
@@ -52,6 +52,7 @@ local function saveOriginalLimbProperties(limb)
         Size = limb.Size,
         Transparency = limb.Transparency,
         CanCollide = limb.CanCollide,
+        Massless = limb.Massless,
         Mesh = meshPart and {
             ClassName = meshPart.ClassName,
             MeshId = meshPart:IsA("SpecialMesh") and meshPart.MeshId or "",
@@ -69,6 +70,7 @@ local function restoreLimbProperties(limb)
     limb.Size = storedProperties.Size
     limb.Transparency = storedProperties.Transparency
     limb.CanCollide = storedProperties.CanCollide
+    limb.Massless = storedProperties.Massless
 
     if storedProperties.Mesh then
         local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or Instance.new(storedProperties.Mesh.ClassName, limb)
@@ -115,6 +117,7 @@ local function modifyTargetLimb(character)
     limb.Transparency = Settings.LIMB_TRANSPARENCY
     limb.CanCollide = Settings.LIMB_CAN_COLLIDE
     limb.Size = Vector3.new(Settings.LIMB_SIZE, Settings.LIMB_SIZE, Settings.LIMB_SIZE)
+    limb.Massless = true
 
     local meshPart = limb:FindFirstChildWhichIsA("SpecialMesh")
     if meshPart then meshPart:Destroy() end
@@ -173,7 +176,7 @@ end
 
 local function endProcess(specialProcess)
     for _, connection in pairs(getgenv().GlobalData) do
-        if type(connection) == "userdata" then
+        if typeof(connection) == "RBXScriptConnection" then
             connection:Disconnect() 
         end
     end
