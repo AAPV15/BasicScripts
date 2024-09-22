@@ -10,7 +10,7 @@ local defaultSettings = {
     LIMB_CAN_COLLIDE = false,
     TEAM_CHECK = false,
     USE_HIGHLIGHT = true,
-    DEPTH_MODE = 1, -- 1 will display through walls, 2 will be occluded through walls
+    DEPTH_MODE = 1,
     HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
     HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
     HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
@@ -197,13 +197,11 @@ local function endProcess(specialProcess)
         getgenv().GlobalData.InputBeganConnection = UserInputService.InputBegan:Connect(handleKeyInput)
     elseif specialProcess == "FullKill" then
         script:Destroy()
-        getgenv().GlobalData = {}
     end
 end
 
 local function startProcess()
     endProcess()
-    getgenv().GlobalData.IsProcessActive = true
     getgenv().GlobalData.LastLimbName = Settings.TARGET_LIMB
     getgenv().GlobalData.InputBeganConnection = UserInputService.InputBegan:Connect(handleKeyInput)
     getgenv().GlobalData.PlayerAddedConnection = PlayersService.PlayerAdded:Connect(onPlayerCharacterAdded)
@@ -220,7 +218,6 @@ function handleKeyInput(input, isProcessed)
     if isProcessed or input.KeyCode ~= Settings.KEYCODE then return end
 
     getgenv().GlobalData.IsProcessActive = not getgenv().GlobalData.IsProcessActive
-    print(getgenv().GlobalData.IsProcessActive)
     if getgenv().GlobalData.IsProcessActive then
         startProcess()
     else
