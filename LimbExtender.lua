@@ -1,6 +1,5 @@
 if getgenv().IsProcessActive and type(getgenv().GlobalData.LimbExtenderTerminateOldProcess) == "function" then
     getgenv().GlobalData.LimbExtenderTerminateOldProcess("FullKill")
-    getgenv().IsProcessActive = false
 end
 
 local defaultSettings = {
