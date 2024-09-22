@@ -4,7 +4,7 @@ end
 
 local defaultSettings = {
     KEYCODE = Enum.KeyCode.K,
-    TARGET_LIMB = "True",
+    TARGET_LIMB = "Head",
     LIMB_SIZE = 20,
     LIMB_TRANSPARENCY = 0.5,
     LIMB_CAN_COLLIDE = false,
