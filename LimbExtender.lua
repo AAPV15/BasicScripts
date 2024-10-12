@@ -90,15 +90,6 @@ local function applyLimbHighlight(limb)
     highlightInstance.FillTransparency = Settings.HIGHLIGHT_FILL_TRANSPARENCY
     highlightInstance.OutlineColor = Settings.HIGHLIGHT_OUTLINE_COLOR
     highlightInstance.OutlineTransparency = Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
-
-    getgenv().GlobalData[highlightInstance] = highlightInstance.AncestryChanged:Once(function()
-        if tick() - currentTick <= 0.7 then
-            highlightInstance:Destroy()
-            applyLimbHighlight(limb)
-        else
-            getgenv().GlobalData[highlightInstance] = nil
-        end
-    end)
 end
 
 local function createVisualizer(limb)
