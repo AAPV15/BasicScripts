@@ -75,7 +75,7 @@ local function restoreLimbProperties(limb)
 end
 
 local function applyLimbHighlight(limb)
-    if not limb.Parent then return applyLimbHighlight(limb) end
+    if not limb.Parent then applyLimbHighlight(limb) end
     local limbb = LimbsFolder:WaitForChild(limb.Parent.Name, 1)
     if not limbb then return end
     local currentTick = tick()
