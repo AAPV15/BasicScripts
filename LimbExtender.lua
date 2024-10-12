@@ -230,7 +230,7 @@ local function startProcess()
             onPlayerCharacterAdded(player)
         else
             player.CharacterAdded:Connect(function(character)
-                character:WaitForChild("Humanoid")
+                task.wait(1)
                 LimbsFolder.Parent = character
             end)
 
