@@ -3,19 +3,19 @@ if getgenv().IsProcessActive and type(getgenv().GlobalData.LimbExtenderTerminate
 end
 
 local defaultSettings = {
-    KEYCODE = Enum.KeyCode.K,
+    KEYCODE = "K",
     TARGET_LIMB = "Head",
-    LIMB_SIZE = 20,
+    LIMB_SIZE = 10,
     LIMB_TRANSPARENCY = 0.5,
     LIMB_CAN_COLLIDE = false,
     TEAM_CHECK = false,
     USE_HIGHLIGHT = true,
-    DEPTH_MODE = 1,
+    DEPTH_MODE = 2,
     HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
     HIGHLIGHT_FILL_TRANSPARENCY = 0.5,
     HIGHLIGHT_OUTLINE_COLOR = Color3.fromRGB(255, 255, 255),
     HIGHLIGHT_OUTLINE_TRANSPARENCY = 0,
-    RESTORE_ORIGINAL_LIMB_ON_DEATH = false
+    RESTORE_ORIGINAL_LIMB_ON_DEATH = true
 }
 
 getgenv().Settings = setmetatable(getgenv().Settings or {}, {__index = defaultSettings})
@@ -28,17 +28,17 @@ local PlayersService = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = PlayersService.LocalPlayer
 
+if not getgenv().GlobalData.LimbsFolder then
+    getgenv().GlobalData.LimbsFolder = Instance.new("Folder", workspace)
+end
+
+local LimbsFolder = getgenv().GlobalData.LimbsFolder
+
 local function isCharacterAlive(character)
     if character then
         local humanoid = character:FindFirstChildWhichIsA("Humanoid")
         local limb = character:FindFirstChild(Settings.TARGET_LIMB)
         if humanoid and limb then
-            local assets = {}
-            table.insert(assets, limb)
-            for _, asset in pairs(limb:GetDescendants()) do
-                table.insert(assets, asset)
-            end
-            ContentProvider:PreloadAsync(assets)
             return true
         end
     end
@@ -47,19 +47,11 @@ end
 
 local function saveOriginalLimbProperties(limb)
     if getgenv().GlobalData[limb] then return end
-    local meshPart = limb:FindFirstChildWhichIsA("SpecialMesh") or limb:FindFirstChildWhichIsA("MeshPart")
     getgenv().GlobalData[limb] = {
         Size = limb.Size,
         Transparency = limb.Transparency,
         CanCollide = limb.CanCollide,
         Massless = limb.Massless,
-        Mesh = meshPart and {
-            ClassName = meshPart.ClassName,
-            MeshId = meshPart:IsA("SpecialMesh") and meshPart.MeshId or "",
-            TextureId = meshPart:IsA("SpecialMesh") and meshPart.TextureId or "",
-            Scale = meshPart:IsA("SpecialMesh") and meshPart.Scale or Vector3.new(),
-            Offset = meshPart:IsA("SpecialMesh") and meshPart.Offset or Vector3.new()
-        }
     }
 end
 
@@ -72,23 +64,21 @@ local function restoreLimbProperties(limb)
     limb.CanCollide = storedProperties.CanCollide
     limb.Massless = storedProperties.Massless
 
-    if storedProperties.Mesh then
-        local mesh = limb:FindFirstChildWhichIsA("SpecialMesh") or Instance.new(storedProperties.Mesh.ClassName, limb)
-        if mesh:IsA("SpecialMesh") then
-            mesh.MeshId = storedProperties.Mesh.MeshId
-            mesh.TextureId = storedProperties.Mesh.TextureId
-            mesh.Scale = storedProperties.Mesh.Scale
-            mesh.Offset = storedProperties.Mesh.Offset
-        end
-    end
-
     getgenv().GlobalData[limb] = nil
-    local highlightInstance = limb:WaitForChild("LimbHighlight", 3)
-    if highlightInstance then highlightInstance:Destroy() end
+
+    task.spawn(function()
+        local visualizer = LimbsFolder:WaitForChild(limb.Parent.Name, 1)
+        if visualizer then
+            visualizer:Destroy()
+        end
+    end)
 end
 
-local function applyLimbHighlight(limb, currentTick)
-    local highlightInstance = limb:FindFirstChildWhichIsA("Highlight") or Instance.new("Highlight", limb)
+local function applyLimbHighlight(limb)
+    local limbb = LimbsFolder:FindFirstChild(limb.Parent.Name, 1.5)
+    if not limbb then return end
+    local currentTick = tick()
+    local highlightInstance = limbb:FindFirstChildWhichIsA("Highlight") or Instance.new("Highlight", limbb)
     highlightInstance.Name = "LimbHighlight"
     if Settings.DEPTH_MODE == 1 then
         highlightInstance.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
@@ -103,27 +93,44 @@ local function applyLimbHighlight(limb, currentTick)
     getgenv().GlobalData[highlightInstance] = highlightInstance.AncestryChanged:Once(function()
         if tick() - currentTick <= 0.7 then
             highlightInstance:Destroy()
-            applyLimbHighlight(limb.Parent)
+            applyLimbHighlight(limb)
         else
             getgenv().GlobalData[highlightInstance] = nil
         end
     end)
 end
 
+local function createVisualizer(limb)
+    local visualizer = Instance.new("Part")
+    visualizer.Size = Vector3.new(Settings.LIMB_SIZE, Settings.LIMB_SIZE, Settings.LIMB_SIZE)
+    visualizer.Transparency = Settings.LIMB_TRANSPARENCY
+    visualizer.CanCollide = Settings.LIMB_CAN_COLLIDE
+    visualizer.Anchored = false
+    visualizer.Massless = true
+    visualizer.Name = limb.Parent.Name
+    visualizer.Color = limb.Color
+    visualizer.Parent = LimbsFolder
+
+    local weld = Instance.new("WeldConstraint")
+    visualizer.CFrame = limb.CFrame
+    weld.Part0 = limb
+    weld.Part1 = visualizer
+    weld.Parent = visualizer
+end
+
 local function modifyTargetLimb(character)
     local limb = character:WaitForChild(Settings.TARGET_LIMB)
     saveOriginalLimbProperties(limb)
 
-    limb.Transparency = Settings.LIMB_TRANSPARENCY
-    limb.CanCollide = Settings.LIMB_CAN_COLLIDE
+    limb.Transparency = 1
+    limb.CanCollide = false
     limb.Size = Vector3.new(Settings.LIMB_SIZE, Settings.LIMB_SIZE, Settings.LIMB_SIZE)
     limb.Massless = true
 
-    local meshPart = limb:FindFirstChildWhichIsA("SpecialMesh")
-    if meshPart then meshPart:Destroy() end
+    createVisualizer(limb)
 
     if Settings.USE_HIGHLIGHT then
-        applyLimbHighlight(limb, tick())
+        applyLimbHighlight(limb)
     end
 end
 
@@ -146,18 +153,23 @@ local function processCharacterLimb(character)
                 restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
             end
         end)
+    else
+        local humanoid = character:WaitForChild("Humanoid").Died:Connect(function()
+            restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
+        end)
     end
 end
 
 local function onPlayerCharacterAdded(player)
-
-    getgenv().GlobalData[player] = player.CharacterAdded:Connect(function(character)
+    getgenv().GlobalData[player] = {
+    player.CharacterAdded:Connect(function(character)
         processCharacterLimb(character)
-    end)
+    end),
 
-    player.CharacterRemoving:Connect(function()
-        restoreLimbProperties(player.Character:FindFirstChild(Settings.TARGET_LIMB or player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName)))
+    player.CharacterRemoving:Connect(function(character)
+        restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB or player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName)))
     end)
+    }
 
     if player.Character then
         processCharacterLimb(player.Character)
@@ -169,7 +181,9 @@ local function onPlayerRemoved(player)
         restoreLimbProperties(player.Character:FindFirstChild(Settings.TARGET_LIMB))
     end
     if getgenv().GlobalData[player] then
-        getgenv().GlobalData[player]:Disconnect()
+        for _, connection in pairs(getgenv().GlobalData[player]) do 
+            connection:Disconnect()
+        end
         getgenv().GlobalData[player] = nil
     end
 end
@@ -182,16 +196,23 @@ local function endProcess(specialProcess)
     end
 
     for _, player in pairs(PlayersService:GetPlayers()) do
+        if getgenv().GlobalData[player] then
+            for _, connection in pairs(getgenv().GlobalData[player]) do 
+                connection:Disconnect()
+            end
+            getgenv().GlobalData[player] = nil
+        end
+
         if player.Character then
+            local limb = player.Character:FindFirstChild(Settings.TARGET_LIMB)
+            if limb then
+                restoreLimbProperties(limb)
+            end
             if getgenv().GlobalData.LastLimbName then
                 local limb = player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName)
                 if limb then
                     restoreLimbProperties(limb)
                 end
-            end
-            local limb = player.Character:FindFirstChild(Settings.TARGET_LIMB)
-            if limb then
-                restoreLimbProperties(limb)
             end
         end
     end
@@ -199,6 +220,7 @@ local function endProcess(specialProcess)
     if specialProcess == "DetectInput" then 
         getgenv().GlobalData.InputBeganConnection = UserInputService.InputBegan:Connect(handleKeyInput)
     elseif specialProcess == "FullKill" then
+        getgenv().GlobalData = {}
         script:Destroy()
     end
 end
@@ -213,12 +235,24 @@ local function startProcess()
     for _, player in pairs(PlayersService:GetPlayers()) do
         if player ~= LocalPlayer then 
             onPlayerCharacterAdded(player)
+        else
+            player.CharacterAdded:Connect(function(character)
+                LimbsFolder.Parent = character
+            end)
+
+            player.CharacterRemoving:Connect(function(character)
+                LimbsFolder.Parent = workspace
+            end)
+
+            if player.Character then
+                LimbsFolder.Parent = player.Character
+            end
         end 
     end
 end
 
 function handleKeyInput(input, isProcessed)
-    if isProcessed or input.KeyCode ~= Settings.KEYCODE then return end
+    if isProcessed or input.KeyCode ~= Enum.KeyCode[Settings.KEYCODE] then return end
 
     getgenv().GlobalData.IsProcessActive = not getgenv().GlobalData.IsProcessActive
     if getgenv().GlobalData.IsProcessActive then
@@ -227,8 +261,6 @@ function handleKeyInput(input, isProcessed)
         endProcess("DetectInput")
     end
 end
-
-getgenv().GlobalData.LimbExtenderTerminateOldProcess = endProcess
 
 if getgenv().GlobalData.IsProcessActive == nil then
     getgenv().GlobalData.IsProcessActive = true
@@ -239,3 +271,5 @@ if getgenv().GlobalData.IsProcessActive then
 else
     endProcess("DetectInput")
 end
+
+getgenv().GlobalData.LimbExtenderTerminateOldProcess = endProcess
