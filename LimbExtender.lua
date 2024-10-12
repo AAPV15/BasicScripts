@@ -86,6 +86,7 @@ local function applyLimbHighlight(limb)
     else
         highlightInstance.DepthMode = Enum.HighlightDepthMode.Occluded
     end
+    highlightInstance.Adornee = limbb
     highlightInstance.FillColor = Settings.HIGHLIGHT_FILL_COLOR
     highlightInstance.FillTransparency = Settings.HIGHLIGHT_FILL_TRANSPARENCY
     highlightInstance.OutlineColor = Settings.HIGHLIGHT_OUTLINE_COLOR
