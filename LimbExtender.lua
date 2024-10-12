@@ -3,12 +3,12 @@ if getgenv().IsProcessActive and type(getgenv().GlobalData.LimbExtenderTerminate
 end
 
 local defaultSettings = {
-    KEYCODE = "K",
+    TOGGLE = "K",
     TARGET_LIMB = "Head",
     LIMB_SIZE = 10,
     LIMB_TRANSPARENCY = 0.5,
     LIMB_CAN_COLLIDE = false,
-    TEAM_CHECK = false,
+    TEAM_CHECK = true,
     USE_HIGHLIGHT = true,
     DEPTH_MODE = 2,
     HIGHLIGHT_FILL_COLOR = Color3.fromRGB(0, 255, 0),
@@ -75,7 +75,8 @@ local function restoreLimbProperties(limb)
 end
 
 local function applyLimbHighlight(limb)
-    local limbb = LimbsFolder:FindFirstChild(limb.Parent.Name, 1.5)
+    if not limb.Parent then return applyLimbHighlight(limb) end
+    local limbb = LimbsFolder:WaitForChild(limb.Parent.Name, 1)
     if not limbb then return end
     local currentTick = tick()
     local highlightInstance = limbb:FindFirstChildWhichIsA("Highlight") or Instance.new("Highlight", limbb)
@@ -101,7 +102,7 @@ local function applyLimbHighlight(limb)
 end
 
 local function createVisualizer(limb)
-    local visualizer = Instance.new("Part")
+    local visualizer = LimbsFolder:FindFirstChild(limb.Parent.Name) or Instance.new("Part")
     visualizer.Size = Vector3.new(Settings.LIMB_SIZE, Settings.LIMB_SIZE, Settings.LIMB_SIZE)
     visualizer.Transparency = Settings.LIMB_TRANSPARENCY
     visualizer.CanCollide = Settings.LIMB_CAN_COLLIDE
@@ -252,7 +253,7 @@ local function startProcess()
 end
 
 function handleKeyInput(input, isProcessed)
-    if isProcessed or input.KeyCode ~= Enum.KeyCode[Settings.KEYCODE] then return end
+    if isProcessed or input.KeyCode ~= Enum.KeyCode[Settings.TOGGLE] then return end
 
     getgenv().GlobalData.IsProcessActive = not getgenv().GlobalData.IsProcessActive
     if getgenv().GlobalData.IsProcessActive then
