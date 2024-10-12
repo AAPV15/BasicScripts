@@ -29,7 +29,7 @@ local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = PlayersService.LocalPlayer
 
 if not getgenv().GlobalData.LimbsFolder then
-    getgenv().GlobalData.LimbsFolder = Instance.new("Folder", workspace)
+    getgenv().GlobalData.LimbsFolder = Instance.new("Folder")
 end
 
 local LimbsFolder = getgenv().GlobalData.LimbsFolder
