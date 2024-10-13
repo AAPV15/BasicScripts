@@ -29,9 +29,10 @@ local LocalPlayer = PlayersService.LocalPlayer
 
 getgenv().GlobalData.LimbsFolder = getgenv().GlobalData.LimbsFolder or Instance.new("Folder")
 local LimbsFolder = getgenv().GlobalData.LimbsFolder
+LimbsFolder.Parent = workspace
 
 local function isCharacterAlive(character)
-    local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+    local humanoid = character:FindFirstChild("Humanoid")
     local limb = character:FindFirstChild(Settings.TARGET_LIMB)
     return humanoid and limb
 end
@@ -85,7 +86,7 @@ local function createVisualizer(limb)
     visualizer.Color = limb.Color
     visualizer.Parent = LimbsFolder
 
-    local weld = Instance.new("WeldConstraint")
+    local weld = visualizer:FindFirstChild("WeldConstraint") or Instance.new("WeldConstraint")
     visualizer.CFrame = limb.CFrame
     weld.Part0 = limb
     weld.Part1 = visualizer
@@ -110,8 +111,16 @@ end
 
 local function processCharacterLimb(character)
     local waited = 0
-    while not isCharacterAlive(character) and waited <= 2 do task.wait(0.1) waited += 0.1 end
-    modifyTargetLimb(character)
+    while not isCharacterAlive(character) and waited <= 10 do 
+        task.wait(0.1) waited += 0.1 
+    end
+    if not isCharacterAlive(character) then return end
+
+    if Settings.TEAM_CHECK and (LocalPlayer.Team == nil or PlayersService:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team) then
+        modifyTargetLimb(character)
+    elseif not Settings.TEAM_CHECK then
+        modifyTargetLimb(character)
+    end
 
     local humanoid = character:WaitForChild("Humanoid")
     if Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
@@ -138,7 +147,7 @@ local function onPlayerCharacterAdded(player)
 
     getgenv().GlobalData[player.Name .. " CharacterRemoving"] = player.CharacterRemoving:Connect(function(character)
         if player == LocalPlayer then
-            LimbsFolder.Parent = character
+            LimbsFolder.Parent = workspace
         else
             restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
         end
@@ -162,6 +171,14 @@ local function onPlayerRemoved(player)
         end
         getgenv().GlobalData[player] = nil
     end
+end
+
+local function LocalTransparencyModifier(part)
+	getgenv().GlobalData[part.Name .. " LocalTransparencyModifier"] = part:GetPropertyChangedSignal("LocalTransparencyModifier"):Connect(function()
+		part.LocalTransparencyModifier = 0
+	end)
+	
+	part.LocalTransparencyModifier = 0
 end
 
 local function endProcess(specialProcess)
@@ -191,12 +208,23 @@ end
 local function startProcess()
     endProcess()
     getgenv().GlobalData.LastLimbName = Settings.TARGET_LIMB
+    getgenv().GlobalData.LimbsFolderChildAdded = LimbsFolder.ChildAdded:Connect(LocalTransparencyModifier)
     getgenv().GlobalData.InputBeganConnection = UserInputService.InputBegan:Connect(handleKeyInput)
     getgenv().GlobalData.PlayerAddedConnection = PlayersService.PlayerAdded:Connect(onPlayerCharacterAdded)
     getgenv().GlobalData.PlayerRemovingConnection = PlayersService.PlayerRemoving:Connect(onPlayerRemoved)
+    getgenv().GlobalData.FolderProtection = LimbsFolder.AncestryChanged:Connect(FolderProtection)
 
     for _, player in pairs(PlayersService:GetPlayers()) do
         onPlayerCharacterAdded(player)
+    end
+end
+
+function FolderProtection(child, parent)
+    if not parent and child:IsA("Folder") then
+        warn("LimbFolder was deleted! Script may have worse performance in this game.")
+        getgenv().GlobalData.LimbsFolder = Instance.new("Folder")
+        LimbsFolder = getgenv().GlobalData.LimbsFolder
+        startProcess()
     end
 end
 
@@ -221,3 +249,7 @@ else
 end
 
 getgenv().GlobalData.LimbExtenderTerminateOldProcess = endProcess
+
+for _, part in LimbsFolder:GetChildren() do
+    LocalTransparencyModifier(part)
+end
