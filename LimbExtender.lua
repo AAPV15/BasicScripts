@@ -23,26 +23,17 @@ getgenv().GlobalData = getgenv().GlobalData or {}
 
 local Settings = getgenv().Settings
 
-local ContentProvider = game:GetService("ContentProvider")
 local PlayersService = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = PlayersService.LocalPlayer
 
-if not getgenv().GlobalData.LimbsFolder then
-    getgenv().GlobalData.LimbsFolder = Instance.new("Folder")
-end
-
+getgenv().GlobalData.LimbsFolder = getgenv().GlobalData.LimbsFolder or Instance.new("Folder")
 local LimbsFolder = getgenv().GlobalData.LimbsFolder
 
 local function isCharacterAlive(character)
-    if character then
-        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
-        local limb = character:FindFirstChild(Settings.TARGET_LIMB)
-        if humanoid and limb then
-            return true
-        end
-    end
-    return false
+    local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+    local limb = character:FindFirstChild(Settings.TARGET_LIMB)
+    return humanoid and limb
 end
 
 local function saveOriginalLimbProperties(limb)
@@ -66,27 +57,21 @@ local function restoreLimbProperties(limb)
 
     getgenv().GlobalData[limb] = nil
 
-    task.spawn(function()
-        local visualizer = LimbsFolder:WaitForChild(limb.Parent.Name, 1)
-        if visualizer then
-            visualizer:Destroy()
-        end
-    end)
+    local visualizer = LimbsFolder:FindFirstChild(limb.Parent.Name)
+    if visualizer then
+        visualizer:Destroy()
+    end
 end
 
 local function applyLimbHighlight(limb)
-    if not limb.Parent then applyLimbHighlight(limb) end
-    local limbb = LimbsFolder:WaitForChild(limb.Parent.Name, 1)
+    if not limb.Parent then return end
+
+    local limbb = LimbsFolder:FindFirstChild(limb.Parent.Name)
     if not limbb then return end
-    local currentTick = tick()
-    local highlightInstance = limbb:FindFirstChildWhichIsA("Highlight") or Instance.new("Highlight", limbb)
+
+    local highlightInstance = limbb:FindFirstChild("LimbHighlight") or Instance.new("Highlight", limbb)
     highlightInstance.Name = "LimbHighlight"
-    if Settings.DEPTH_MODE == 1 then
-        highlightInstance.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    else
-        highlightInstance.DepthMode = Enum.HighlightDepthMode.Occluded
-    end
-    highlightInstance.Adornee = limbb
+    highlightInstance.DepthMode = Settings.DEPTH_MODE == 1 and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
     highlightInstance.FillColor = Settings.HIGHLIGHT_FILL_COLOR
     highlightInstance.FillTransparency = Settings.HIGHLIGHT_FILL_TRANSPARENCY
     highlightInstance.OutlineColor = Settings.HIGHLIGHT_OUTLINE_COLOR
@@ -109,6 +94,10 @@ local function createVisualizer(limb)
     weld.Part0 = limb
     weld.Part1 = visualizer
     weld.Parent = visualizer
+
+    if Settings.USE_HIGHLIGHT then
+        applyLimbHighlight(limb)
+    end
 end
 
 local function modifyTargetLimb(character)
@@ -121,33 +110,21 @@ local function modifyTargetLimb(character)
     limb.Massless = true
 
     createVisualizer(limb)
-
-    if Settings.USE_HIGHLIGHT then
-        applyLimbHighlight(limb)
-    end
 end
 
 local function processCharacterLimb(character)
-    local function modifyIfCharacterAlive()
-        while not isCharacterAlive(character) do task.wait() end
-        modifyTargetLimb(character)
-    end
+    if not isCharacterAlive(character) then return end
+    modifyTargetLimb(character)
 
-    if Settings.TEAM_CHECK and (LocalPlayer.Team == nil or PlayersService:GetPlayerFromCharacter(character).Team ~= LocalPlayer.Team) then
-        coroutine.wrap(modifyIfCharacterAlive)()
-    elseif not Settings.TEAM_CHECK then
-        coroutine.wrap(modifyIfCharacterAlive)()
-    end
-
+    local humanoid = character:WaitForChild("Humanoid")
     if Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
-        local humanoid = character:WaitForChild("Humanoid")
         getgenv().GlobalData[humanoid] = humanoid.HealthChanged:Connect(function(health)
             if health <= 0 then
                 restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
             end
         end)
     else
-        local humanoid = character:WaitForChild("Humanoid").Died:Connect(function()
+        humanoid.Died:Connect(function()
             restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
         end)
     end
@@ -155,24 +132,33 @@ end
 
 local function onPlayerCharacterAdded(player)
     getgenv().GlobalData[player] = {
-    player.CharacterAdded:Connect(function(character)
-        processCharacterLimb(character)
-    end),
-
-    player.CharacterRemoving:Connect(function(character)
-        restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB or player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName)))
-    end)
+        player.CharacterAdded:Connect(function(character)
+            if player == LocalPlayer then
+                LimbsFolder.Parent = character
+            else
+                processCharacterLimb(character)
+            end
+        end),
+        player.CharacterRemoving:Connect(function(character)
+            if player == LocalPlayer then
+                LimbsFolder.Parent = character
+            else
+                restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
+            end
+        end)
     }
 
     if player.Character then
-        processCharacterLimb(player.Character)
+        if player == LocalPlayer then
+            LimbsFolder.Parent = player.Character
+        else
+            processCharacterLimb(player.Character)
+        end
     end
 end
 
 local function onPlayerRemoved(player)
-    if player.Character then
-        restoreLimbProperties(player.Character:FindFirstChild(Settings.TARGET_LIMB))
-    end
+    restoreLimbProperties(player.Character and player.Character:FindFirstChild(Settings.TARGET_LIMB))
     if getgenv().GlobalData[player] then
         for _, connection in pairs(getgenv().GlobalData[player]) do 
             connection:Disconnect()
@@ -189,24 +175,9 @@ local function endProcess(specialProcess)
     end
 
     for _, player in pairs(PlayersService:GetPlayers()) do
-        if getgenv().GlobalData[player] then
-            for _, connection in pairs(getgenv().GlobalData[player]) do 
-                connection:Disconnect()
-            end
-            getgenv().GlobalData[player] = nil
-        end
-
-        if player.Character then
-            local limb = player.Character:FindFirstChild(Settings.TARGET_LIMB)
-            if limb then
-                restoreLimbProperties(limb)
-            end
-            if getgenv().GlobalData.LastLimbName then
-                local limb = player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName)
-                if limb then
-                    restoreLimbProperties(limb)
-                end
-            end
+        restoreLimbProperties(player.Character and player.Character:FindFirstChild(Settings.TARGET_LIMB))
+        if getgenv().GlobalData.LastLimbName then
+            restoreLimbProperties(player.Character and player.Character:FindFirstChild(getgenv().GlobalData.LastLimbName))
         end
     end
 
@@ -226,28 +197,12 @@ local function startProcess()
     getgenv().GlobalData.PlayerRemovingConnection = PlayersService.PlayerRemoving:Connect(onPlayerRemoved)
 
     for _, player in pairs(PlayersService:GetPlayers()) do
-        if player ~= LocalPlayer then 
-            onPlayerCharacterAdded(player)
-        else
-            player.CharacterAdded:Connect(function(character)
-                task.wait(1)
-                LimbsFolder.Parent = character
-            end)
-
-            player.CharacterRemoving:Connect(function(character)
-                LimbsFolder.Parent = workspace
-            end)
-
-            if player.Character then
-                LimbsFolder.Parent = player.Character
-            end
-        end 
+        onPlayerCharacterAdded(player)
     end
 end
 
 function handleKeyInput(input, isProcessed)
     if isProcessed or input.KeyCode ~= Enum.KeyCode[Settings.TOGGLE] then return end
-
     getgenv().GlobalData.IsProcessActive = not getgenv().GlobalData.IsProcessActive
     if getgenv().GlobalData.IsProcessActive then
         startProcess()
