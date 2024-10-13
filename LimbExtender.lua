@@ -64,18 +64,14 @@ local function restoreLimbProperties(limb)
 end
 
 local function applyLimbHighlight(limb)
-    if not limb.Parent then return end
-
-    local limbb = LimbsFolder:FindFirstChild(limb.Parent.Name)
-    if not limbb then return end
-
-    local highlightInstance = limbb:FindFirstChild("LimbHighlight") or Instance.new("Highlight", limbb)
+    local highlightInstance = limb:FindFirstChild("LimbHighlight") or Instance.new("Highlight", limb)
     highlightInstance.Name = "LimbHighlight"
     highlightInstance.DepthMode = Settings.DEPTH_MODE == 1 and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
     highlightInstance.FillColor = Settings.HIGHLIGHT_FILL_COLOR
     highlightInstance.FillTransparency = Settings.HIGHLIGHT_FILL_TRANSPARENCY
     highlightInstance.OutlineColor = Settings.HIGHLIGHT_OUTLINE_COLOR
     highlightInstance.OutlineTransparency = Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
+    highlightInstance.Adornee = limb
 end
 
 local function createVisualizer(limb)
@@ -96,7 +92,7 @@ local function createVisualizer(limb)
     weld.Parent = visualizer
 
     if Settings.USE_HIGHLIGHT then
-        applyLimbHighlight(limb)
+        applyLimbHighlight(visualizer)
     end
 end
 
@@ -113,7 +109,8 @@ local function modifyTargetLimb(character)
 end
 
 local function processCharacterLimb(character)
-    if not isCharacterAlive(character) then return end
+    local waited = 0
+    while not isCharacterAlive(character) and waited <= 2 do task.wait(0.1) waited += 0.1 end
     modifyTargetLimb(character)
 
     local humanoid = character:WaitForChild("Humanoid")
