@@ -118,35 +118,35 @@ local function processCharacterLimb(character)
 
     local humanoid = character:WaitForChild("Humanoid")
     if Settings.RESTORE_ORIGINAL_LIMB_ON_DEATH then
-        getgenv().GlobalData[humanoid] = humanoid.HealthChanged:Connect(function(health)
+        getgenv().GlobalData[character.Name .. " OnDeath"] = humanoid.HealthChanged:Connect(function(health)
             if health <= 0 then
                 restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
             end
         end)
     else
-        humanoid.Died:Connect(function()
+        getgenv().GlobalData[character.Name .. " OnDeath"] = humanoid.Died:Connect(function()
             restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
         end)
     end
 end
 
 local function onPlayerCharacterAdded(player)
-    getgenv().GlobalData[player] = {
-        player.CharacterAdded:Connect(function(character)
-            if player == LocalPlayer then
-                LimbsFolder.Parent = character
-            else
-                processCharacterLimb(character)
-            end
-        end),
-        player.CharacterRemoving:Connect(function(character)
-            if player == LocalPlayer then
-                LimbsFolder.Parent = character
-            else
-                restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
-            end
-        end)
-    }
+    getgenv().GlobalData[player.Name .. " CharacterAdded"] = player.CharacterAdded:Connect(function(character)
+        if player == LocalPlayer then
+            LimbsFolder.Parent = character
+        else
+            processCharacterLimb(character)
+        end
+    end)
+
+    getgenv().GlobalData[player.Name .. " CharacterRemoving"] = player.CharacterRemoving:Connect(function(character)
+        if player == LocalPlayer then
+            LimbsFolder.Parent = character
+        else
+            restoreLimbProperties(character:FindFirstChild(Settings.TARGET_LIMB))
+        end
+    end)
+
 
     if player.Character then
         if player == LocalPlayer then
@@ -168,9 +168,11 @@ local function onPlayerRemoved(player)
 end
 
 local function endProcess(specialProcess)
-    for _, connection in pairs(getgenv().GlobalData) do
+    for name, connection in pairs(getgenv().GlobalData) do
         if typeof(connection) == "RBXScriptConnection" then
-            connection:Disconnect() 
+            connection:Disconnect()
+            getgenv().GlobalData[name] = {}
+            getgenv().GlobalData[name] = nil
         end
     end
 
