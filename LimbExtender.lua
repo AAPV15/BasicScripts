@@ -29,7 +29,6 @@ local LocalPlayer = PlayersService.LocalPlayer
 
 getgenv().GlobalData.LimbsFolder = getgenv().GlobalData.LimbsFolder or Instance.new("Folder")
 local LimbsFolder = getgenv().GlobalData.LimbsFolder
-LimbsFolder.Parent = workspace
 
 local function isCharacterAlive(character)
     local humanoid = character:FindFirstChild("Humanoid")
@@ -72,7 +71,6 @@ local function applyLimbHighlight(limb)
     highlightInstance.FillTransparency = Settings.HIGHLIGHT_FILL_TRANSPARENCY
     highlightInstance.OutlineColor = Settings.HIGHLIGHT_OUTLINE_COLOR
     highlightInstance.OutlineTransparency = Settings.HIGHLIGHT_OUTLINE_TRANSPARENCY
-    highlightInstance.Adornee = limb
 end
 
 local function createVisualizer(limb)
